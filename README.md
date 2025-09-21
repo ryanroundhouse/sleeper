@@ -5,10 +5,15 @@ A comprehensive tool to fetch, store, and display Sleeper fantasy football leagu
 ## 🏈 Features
 
 - **Complete League Data Fetching**: Rosters, users, matchups, draft information, and NFL player database
-- **Beautiful Web Interface**: Modern, responsive design showing team standings and detailed rosters
+- **Interactive Web Interface**: Modern, responsive design with week-by-week player points analysis
+- **Week Selection Dropdown**: Choose any week to view detailed player performance
+- **Player Points Display**: See every player's points for the selected week with starter indicators
+- **Dual Interface Navigation**: Switch between detailed player points and team roster views
+- **Built-in Web Server**: Python script automatically launches web server and opens browser
+- **Automatic Port Detection**: Finds available port if default (8000) is in use
 - **Offline Capability**: All data stored locally in JSON files
 - **Real Player Names**: Displays actual player names, positions, and teams
-- **Automatic Updates**: Fetches current week matchups and latest standings
+- **Multi-week Data**: Fetches all weeks from 1 through current week
 
 ## 📋 What Data Gets Updated
 
@@ -16,7 +21,7 @@ The script fetches and updates the following data each time it runs:
 
 ### **Always Updated (Changes Frequently)**
 - **Team Standings** - Wins, losses, points for/against
-- **Current Week Matchups** - Live scoring data for the current NFL week
+- **Weekly Matchups** - Player points and scoring data for all weeks (1 through current week)
 - **Roster Changes** - Player adds/drops, waiver moves
 - **NFL State** - Current week, season status
 
@@ -55,7 +60,7 @@ The script fetches and updates the following data each time it runs:
 
 #### Option 1: Using Command Line (Quick Start)
 
-1. **Fetch league data:**
+1. **Run the script with your league ID:**
    ```bash
    python sleeper_league_data.py YOUR_LEAGUE_ID
    ```
@@ -64,6 +69,12 @@ The script fetches and updates the following data each time it runs:
    ```bash
    python sleeper_league_data.py 1264686617134628864
    ```
+
+   **This will:**
+   - Fetch all league data from Sleeper API
+   - Start a web server automatically
+   - Open your browser to the interactive interface
+   - Display the server URL in the terminal
 
 #### Option 2: Using .env File (Recommended for Automation)
 
@@ -74,20 +85,37 @@ The script fetches and updates the following data each time it runs:
    WEB_SERVER_PORT=8000
    ```
 
-2. **Fetch league data** (no arguments needed):
+2. **Run the script** (no arguments needed):
    ```bash
    python sleeper_league_data.py
    ```
 
-#### Starting the Web Server
+   **This will:**
+   - Read the league ID from your .env file
+   - Fetch all league data and start the web server
+   - Open your browser automatically
 
-**Start the web server:**
-```bash
-python3 -m http.server 8000
-```
+#### Interactive Web Interface
 
-**View your league:**
-Open your browser to `http://localhost:8000`
+**IMPORTANT**: You must run the Python script to use the web interface. The script includes a built-in web server that serves the interactive interface.
+
+When you run the script, it will automatically:
+1. **Fetch all weekly data** (weeks 1 through current week)
+2. **Find an available port** (starts with 8000, uses 8001, 8002, etc. if needed)
+3. **Launch a web server** with the interactive interface
+4. **Open your browser** automatically to the correct URL
+
+**Web Interface Features:**
+- **Two Interface Views**:
+  - **Player Points**: Week-by-week analysis with dropdown selection
+  - **Team Rosters**: Complete roster breakdowns and standings
+- **Navigation**: Switch between views using the navigation buttons
+- **Week Selection Dropdown**: Choose any week to analyze player performance
+- **Detailed Player Cards**: Points, positions, teams, and starter indicators
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Real-time Data**: All data is fetched fresh from Sleeper API each time you run the script
+
+**⚠️ Note**: The old method of using `python3 -m http.server` will NOT work with the new interactive features. You must run the Python script directly.
 
 ## 🔄 Scheduling Automatic Updates
 
@@ -145,15 +173,16 @@ After running the script, you'll have these files:
 
 ```
 sleeper/
-├── sleeper_league_data.py          # Main data fetching script
-├── index.html                      # Web interface
+├── sleeper_league_data.py          # Main script with built-in web server
+├── sleeper_web_interface.html      # Player points interface (served by script)
+├── index.html                      # Team rosters interface (served by script)
 ├── README.md                       # This file
 ├── .env                           # Configuration file (create this)
 ├── venv/                          # Python virtual environment
 ├── league_XXXXXX_info.json        # League configuration
 ├── league_XXXXXX_rosters.json     # Team rosters and standings
 ├── league_XXXXXX_users.json       # League members
-├── league_XXXXXX_matchups_week_X.json # Current week matchups
+├── league_XXXXXX_matchups_week_X.json # Matchups for each week (1 through current)
 ├── league_XXXXXX_draft_info.json  # Draft settings
 ├── league_XXXXXX_draft_picks.json # All draft picks
 ├── nfl_players.json               # Complete NFL player database (17MB)
@@ -208,15 +237,14 @@ MAX_WEEKS_TO_KEEP=17
 
 **Note**: Currently only `SLEEPER_LEAGUE_ID` is used by the script. Other options are reserved for future features.
 
-### Custom Web Server Port
+### Automatic Port Selection
 
-If port 8000 is in use:
+The script automatically finds an available port starting from 8000:
+- If 8000 is available: uses 8000
+- If 8000 is in use: tries 8001, 8002, etc.
+- The script will display the actual port being used in the terminal
 
-```bash
-python3 -m http.server 8080  # or any available port
-```
-
-Then visit `http://localhost:8080`
+**No manual port configuration needed!**
 
 ### Data Analysis
 
@@ -239,14 +267,26 @@ for roster in rosters:
 
 ## 🌐 Web Interface Features
 
-The web interface (`index.html`) provides:
+The interactive web interface provides two main views:
 
-- **Responsive Design**: Works on desktop, tablet, and mobile
+### **Player Points Interface** (`sleeper_web_interface.html`)
+- **Week Selection**: Dropdown to choose any week (1 through current)
+- **Player Cards**: Individual cards showing points, position, team
+- **Starter Indicators**: Green highlighting for starting players
+- **Team Rankings**: Teams sorted by total points for selected week
+- **Responsive Design**: Works on all devices
+
+### **Team Rosters Interface** (`index.html`)
 - **Team Cards**: Each team displayed with standings and full roster
 - **Player Information**: Real names, positions, and NFL teams
 - **Visual Distinction**: Starters highlighted differently from bench players
+- **Season Statistics**: Wins/losses, points for/against, waiver positions
 - **Sortable**: Teams automatically sorted by wins, then points
-- **Statistics**: Points for/against, waiver positions
+
+### **Navigation**
+- **Seamless Switching**: Navigate between views with navigation buttons
+- **Consistent Design**: Both interfaces share the same modern styling
+- **Mobile Friendly**: Navigation adapts to mobile devices
 
 ## 🛠️ Troubleshooting
 
@@ -254,23 +294,36 @@ The web interface (`index.html`) provides:
 
 **"Module not found: requests"**
 ```bash
+# Make sure you're in the virtual environment
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install requests
 ```
 
-**"Failed to load JSON files"**
-- Make sure you've run the Python script first
-- Check that all JSON files are in the same directory as index.html
-- Verify the web server is running
+**"HTTP 404: File not found" or "Failed to load data"**
+- **SOLUTION**: You must run the Python script, not a simple HTTP server
+- **WRONG**: `python3 -m http.server 8000`
+- **CORRECT**: `python sleeper_league_data.py YOUR_LEAGUE_ID`
+- The script includes a built-in web server that serves the interactive interface
+
+**"Address already in use" (Port conflict)**
+- The script automatically finds an available port (8001, 8002, etc.)
+- Check the terminal output for the actual port being used
+- If you see this error, kill any existing Python processes: `pkill -f python`
+
+**"JSON.parse: unexpected character" error**
+- This means the API endpoint isn't working properly
+- Make sure you're running the Python script, not just serving static files
+- Check the browser console (F12) for the actual error details
 
 **"League not found"**
 - Double-check your league ID
 - Ensure the league is public or you have access
 - Try the league ID from your Sleeper app URL
 
-**Web page shows "Loading..." forever**
-- Check browser console for errors (F12)
-- Verify all JSON files exist
-- Make sure you're accessing via HTTP server, not file:// protocol
+**Web interface shows error messages**
+- The interface now provides detailed error messages with solutions
+- Follow the troubleshooting steps shown in the error message
+- Most issues are resolved by running the Python script correctly
 
 ### Getting Your League ID
 

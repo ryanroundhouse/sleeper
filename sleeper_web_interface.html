@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleeper League - Player Points by Week</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .week-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .week-selector label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .week-selector select {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .week-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-toggle button {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .view-toggle button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .view-toggle button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .team-section {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .team-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .team-points {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .player-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .player-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .player-card.starter {
+            border-left-color: #27ae60;
+            background: #e8f5e8;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .player-points {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .player-details {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .position {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .starter-badge {
+            background: #27ae60;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="league-name">Loading League...</h1>
+            <p id="league-info">Fetching league information...</p>
+        </div>
+
+        <div class="controls">
+            <div class="week-selector">
+                <label for="week-select">Select Week:</label>
+                <select id="week-select">
+                    <option value="">Loading weeks...</option>
+                </select>
+            </div>
+            
+            <div class="view-toggle">
+                <button id="detailed-view" class="active">Player Points</button>
+                <button id="team-rosters">Team Rosters</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="loading" id="loading">
+                Loading player data...
+            </div>
+
+            <div class="error" id="error" style="display: none;">
+                Failed to load data. Please try again.
+            </div>
+
+            <div id="detailed-content" class="detailed-view active">
+                <!-- Detailed player cards will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let leagueData = null;
+        let currentWeek = null;
+
+        // Load data from API
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                leagueData = await response.json();
+                
+                // Update header
+                document.getElementById('league-name').textContent = leagueData.league_info.name;
+                document.getElementById('league-info').textContent = 
+                    `Season ${leagueData.league_info.season} • ${leagueData.league_info.total_rosters} Teams • Current Week: ${leagueData.league_info.current_week}`;
+                
+                // Populate week selector
+                populateWeekSelector();
+                
+                // Set default week to current week
+                currentWeek = leagueData.league_info.current_week;
+                document.getElementById('week-select').value = currentWeek;
+                
+                // Display data for current week
+                displayWeekData(currentWeek);
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.innerHTML = `
+                    <h3>Failed to load data</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Possible solutions:</strong></p>
+                    <ul style="text-align: left; display: inline-block;">
+                        <li>Make sure you're running the Python script: <code>python sleeper_league_data.py [league_id]</code></li>
+                        <li>Check that the server is running on the correct port (should be 8000)</li>
+                        <li>Ensure you're accessing the page through the Python server, not a simple HTTP server</li>
+                        <li>Try refreshing the page after the Python script has fully loaded</li>
+                    </ul>
+                `;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        function populateWeekSelector() {
+            const select = document.getElementById('week-select');
+            select.innerHTML = '';
+            
+            leagueData.weeks.forEach(weekData => {
+                const option = document.createElement('option');
+                option.value = weekData.week;
+                option.textContent = `Week ${weekData.week}`;
+                select.appendChild(option);
+            });
+        }
+
+        function displayWeekData(week) {
+            const weekData = leagueData.weeks.find(w => w.week === parseInt(week));
+            if (!weekData) {
+                document.getElementById('error').textContent = `No data available for week ${week}`;
+                document.getElementById('error').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            displayDetailedView(weekData);
+        }
+
+        function displayDetailedView(weekData) {
+            const container = document.getElementById('detailed-content');
+            container.innerHTML = '';
+
+            // Sort teams by total points (descending)
+            const sortedMatchups = weekData.matchups.sort((a, b) => b.total_points - a.total_points);
+
+            sortedMatchups.forEach(matchup => {
+                const teamSection = document.createElement('div');
+                teamSection.className = 'team-section';
+
+                const teamHeader = document.createElement('div');
+                teamHeader.className = 'team-header';
+                teamHeader.innerHTML = `
+                    <div class="team-name">${matchup.team_name}</div>
+                    <div class="team-points">${matchup.total_points.toFixed(1)} pts</div>
+                `;
+
+                const playersGrid = document.createElement('div');
+                playersGrid.className = 'players-grid';
+
+                // Get all players with points > 0 or starters
+                const playersWithPoints = Object.entries(matchup.players_points)
+                    .filter(([playerId, points]) => points > 0 || matchup.starters.includes(playerId))
+                    .sort(([, a], [, b]) => b - a);
+
+                playersWithPoints.forEach(([playerId, points]) => {
+                    const player = leagueData.players[playerId];
+                    const isStarter = matchup.starters.includes(playerId);
+                    
+                    const playerCard = document.createElement('div');
+                    playerCard.className = `player-card ${isStarter ? 'starter' : ''}`;
+                    
+                    playerCard.innerHTML = `
+                        <div class="player-info">
+                            <div class="player-name">${player ? player.name : 'Unknown Player'}</div>
+                            <div class="player-points">${points.toFixed(1)}</div>
+                        </div>
+                        <div class="player-details">
+                            <span class="position">${player ? player.position : 'N/A'}</span>
+                            <span>${player ? player.team : 'N/A'}</span>
+                            ${isStarter ? '<span class="starter-badge">STARTER</span>' : ''}
+                        </div>
+                    `;
+                    
+                    playersGrid.appendChild(playerCard);
+                });
+
+                teamSection.appendChild(teamHeader);
+                teamSection.appendChild(playersGrid);
+                container.appendChild(teamSection);
+            });
+        }
+
+
+        // Event listeners
+        document.getElementById('week-select').addEventListener('change', function() {
+            currentWeek = parseInt(this.value);
+            displayWeekData(currentWeek);
+        });
+
+        document.getElementById('detailed-view').addEventListener('click', function() {
+            // This button is already active for the current view, no action needed
+        });
+
+        document.getElementById('team-rosters').addEventListener('click', function() {
+            // Navigate to the team rosters view (index.html)
+            window.location.href = 'index.html';
+        });
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

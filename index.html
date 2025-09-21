@@ -45,6 +45,41 @@
             opacity: 0.9;
         }
 
+        .navigation {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .nav-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
         .loading {
             text-align: center;
             padding: 50px;
@@ -193,6 +228,20 @@
             .header h1 {
                 font-size: 2rem;
             }
+
+            .navigation {
+                padding: 15px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -201,6 +250,13 @@
         <div class="header">
             <h1 id="league-name">Loading League...</h1>
             <p id="league-info">Fetching league information...</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <button class="nav-button active">Team Rosters</button>
+                <button class="nav-button" onclick="window.location.href='sleeper_web_interface.html'">Player Points</button>
+            </div>
         </div>
         
         <div id="loading" class="loading">
