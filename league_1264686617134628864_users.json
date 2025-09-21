@@ -1,0 +1,212 @@
+[
+  {
+    "avatar": "15d7cf259bc30eab8f6120f45f652fb6",
+    "display_name": "JLieb",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on",
+      "team_name": "McBride dont get Hurt"
+    },
+    "settings": null,
+    "user_id": "686626942497165312"
+  },
+  {
+    "avatar": "d4281a1813043d2cd0c1db1d6cefa699",
+    "display_name": "SawyerHuth",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on",
+      "team_name": "I'm the Pitts, man"
+    },
+    "settings": null,
+    "user_id": "686663857703284736"
+  },
+  {
+    "avatar": "15d7cf259bc30eab8f6120f45f652fb6",
+    "display_name": "coachndavies",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "avatar": "https://sleepercdn.com/uploads/412fdc7809c172074d9a12a0c58940a2.jpg",
+      "mention_pn": "on",
+      "team_name": "Picks Akin To Cats (2019)"
+    },
+    "settings": null,
+    "user_id": "761029114655526912"
+  },
+  {
+    "avatar": "8eb8f8bf999945d523f2c4033f70473e",
+    "display_name": "tgagne15",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "off",
+      "league_report_pn": "on",
+      "mascot_message": "on",
+      "mention_pn": "on",
+      "player_like_pn": "on",
+      "player_nickname_update": "on",
+      "team_name_update": "on",
+      "trade_block_pn": "on",
+      "transaction_commissioner": "on",
+      "transaction_free_agent": "on",
+      "transaction_trade": "on",
+      "transaction_waiver": "on",
+      "user_message_pn": "on"
+    },
+    "settings": null,
+    "user_id": "832107694155481088"
+  },
+  {
+    "avatar": "b3338675f635c2c1f42b469621d38ec6",
+    "display_name": "CraigMWhite",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on"
+    },
+    "settings": null,
+    "user_id": "1132468884948410368"
+  },
+  {
+    "avatar": "8f2fb04e7742f30812764fb67ea72add",
+    "display_name": "ClevelandSkidmarks",
+    "is_bot": false,
+    "is_owner": true,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "allow_sms": "on",
+      "mention_pn": "on",
+      "team_name": "Rookies and Regrets"
+    },
+    "settings": null,
+    "user_id": "1263662098932576256"
+  },
+  {
+    "avatar": "b491bee110994bc13d2c68023c71259d",
+    "display_name": "MamaTurner",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on"
+    },
+    "settings": null,
+    "user_id": "1264794050423181312"
+  },
+  {
+    "avatar": "7572250c2fb084c434fed0e82229e183",
+    "display_name": "RyanRoundhouse15",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "avatar": "https://sleepercdn.com/uploads/b5a807d6e713c01374f1dec0d7e5c973",
+      "mention_pn": "on",
+      "team_name": "Juwan Malik my Penix"
+    },
+    "settings": null,
+    "user_id": "1264796825332756480"
+  },
+  {
+    "avatar": "d22e52781a5d7a94bcbf2aa70e748382",
+    "display_name": "ScratchMarx",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "avatar": "https://sleepercdn.com/uploads/224995fdd0b02ac82fe54da0c623dcd5.jpg",
+      "mention_pn": "on",
+      "team_name": "Here for Skattebo"
+    },
+    "settings": null,
+    "user_id": "1264802196839485440"
+  },
+  {
+    "avatar": "0be2ea91357edb30e63a57f5ff551736",
+    "display_name": "VillainousGoose",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "allow_sms": "on",
+      "avatar": "https://sleepercdn.com/uploads/67fbf46b63260d698f85c453fe07a516.jpg",
+      "mention_pn": "on",
+      "team_name": "Ironside Scanners"
+    },
+    "settings": null,
+    "user_id": "1264802806892605440"
+  },
+  {
+    "avatar": "578c6b253dd7b4bab45382e1af102204",
+    "display_name": "jaredhudd",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on"
+    },
+    "settings": null,
+    "user_id": "1264991046740221952"
+  },
+  {
+    "avatar": "51385ba57cd089261f6de9ce483b8716",
+    "display_name": "Dherbert06",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "allow_sms": "on",
+      "archived": "off",
+      "mention_pn": "on"
+    },
+    "settings": null,
+    "user_id": "1265406351698317312"
+  },
+  {
+    "avatar": "7572250c2fb084c434fed0e82229e183",
+    "display_name": "MsCBoom",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on",
+      "team_name": "Hope and a Prayer"
+    },
+    "settings": null,
+    "user_id": "1265416167640539136"
+  },
+  {
+    "avatar": "578c6b253dd7b4bab45382e1af102204",
+    "display_name": "carlene2025",
+    "is_bot": false,
+    "is_owner": null,
+    "league_id": "1264686617134628864",
+    "metadata": {
+      "allow_pn": "on",
+      "mention_pn": "on",
+      "team_name": "Here for taylor swift"
+    },
+    "settings": null,
+    "user_id": "1265425319699939328"
+  }
+]
