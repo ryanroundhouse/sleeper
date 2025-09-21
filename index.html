@@ -266,7 +266,7 @@
         <div id="teams-container" class="teams-grid" style="display: none;"></div>
         
         <div id="error" class="error" style="display: none;">
-            <p>Error loading league data. Please make sure all JSON files (including nfl_players.json) are in the same directory.</p>
+            <p>Error loading league data. Please make sure you've run the Python script first and all JSON files are in the same directory.</p>
         </div>
     </div>
 
@@ -456,7 +456,18 @@
 
             showError() {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('error').style.display = 'block';
+                const errorDiv = document.getElementById('error');
+                errorDiv.innerHTML = `
+                    <h3>Failed to load league data</h3>
+                    <p><strong>Possible solutions:</strong></p>
+                    <ul style="text-align: left; display: inline-block; margin: 20px 0;">
+                        <li>Make sure you've run the Python script first: <code>python sleeper_league_data.py [league_id]</code></li>
+                        <li>Check that all JSON files exist in the same directory</li>
+                        <li>If serving locally, use: <code>python3 -m http.server 8080</code></li>
+                        <li>Make sure you're accessing via HTTP (not file://) to avoid CORS issues</li>
+                    </ul>
+                `;
+                errorDiv.style.display = 'block';
             }
         }
 

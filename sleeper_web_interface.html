@@ -276,10 +276,10 @@
         let leagueData = null;
         let currentWeek = null;
 
-        // Load data from API
+        // Load data from local JSON file
         async function loadData() {
             try {
-                const response = await fetch('/api/data');
+                const response = await fetch('web_interface_data.json');
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
@@ -309,10 +309,10 @@
                     <p><strong>Error:</strong> ${error.message}</p>
                     <p><strong>Possible solutions:</strong></p>
                     <ul style="text-align: left; display: inline-block;">
-                        <li>Make sure you're running the Python script: <code>python sleeper_league_data.py [league_id]</code></li>
-                        <li>Check that the server is running on the correct port (should be 8000)</li>
-                        <li>Ensure you're accessing the page through the Python server, not a simple HTTP server</li>
-                        <li>Try refreshing the page after the Python script has fully loaded</li>
+                        <li>Make sure you've run the Python script first: <code>python sleeper_league_data.py [league_id]</code></li>
+                        <li>Check that the web_interface_data.json file exists in the same directory</li>
+                        <li>If serving locally, use: <code>python3 -m http.server 8080</code></li>
+                        <li>Make sure you're accessing via HTTP (not file://) to avoid CORS issues</li>
                     </ul>
                 `;
                 errorDiv.style.display = 'block';
