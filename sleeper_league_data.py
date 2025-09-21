@@ -15,6 +15,7 @@ Usage: python sleeper_league_data.py <league_id>
 import requests
 import json
 import sys
+import os
 from typing import Dict, List, Optional
 import time
 
@@ -124,14 +125,52 @@ def format_league_summary(league_data: Dict, users_data: List[Dict], rosters_dat
     return "\n".join(summary)
 
 
+def load_env_file():
+    """Load environment variables from .env file if it exists."""
+    env_file = '.env'
+    if os.path.exists(env_file):
+        with open(env_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key.strip()] = value.strip()
+
+
+def get_league_id():
+    """Get league ID from command line argument or environment variable."""
+    # First try command line argument
+    if len(sys.argv) >= 2:
+        return sys.argv[1]
+    
+    # Then try environment variable
+    league_id = os.environ.get('SLEEPER_LEAGUE_ID')
+    if league_id:
+        return league_id
+    
+    # If neither found, show usage and exit
+    print("Error: No league ID provided!")
+    print()
+    print("Usage options:")
+    print("1. Command line: python sleeper_league_data.py <league_id>")
+    print("   Example: python sleeper_league_data.py 1264686617134628864")
+    print()
+    print("2. Environment file: Create a .env file with:")
+    print("   SLEEPER_LEAGUE_ID=your_league_id_here")
+    print()
+    print("3. Environment variable:")
+    print("   export SLEEPER_LEAGUE_ID=your_league_id_here")
+    print("   python sleeper_league_data.py")
+    sys.exit(1)
+
+
 def main():
     """Main function to fetch and display league data."""
-    if len(sys.argv) != 2:
-        print("Usage: python sleeper_league_data.py <league_id>")
-        print("Example: python sleeper_league_data.py 1264686617134628864")
-        sys.exit(1)
+    # Load .env file if it exists
+    load_env_file()
     
-    league_id = sys.argv[1]
+    # Get league ID from various sources
+    league_id = get_league_id()
     print(f"Fetching data for Sleeper League ID: {league_id}")
     print("=" * 60)
     
