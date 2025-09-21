@@ -9,8 +9,8 @@ A comprehensive tool to fetch, store, and display Sleeper fantasy football leagu
 - **Week Selection Dropdown**: Choose any week to view detailed player performance
 - **Player Points Display**: See every player's points for the selected week with starter indicators
 - **Dual Interface Navigation**: Switch between detailed player points and team roster views
-- **Built-in Web Server**: Python script automatically launches web server and opens browser
-- **Automatic Port Detection**: Finds available port if default (8000) is in use
+- **Static HTML Files**: Pure static files that work with any web server
+- **Simple Server Script**: Included shell script for easy local serving
 - **Offline Capability**: All data stored locally in JSON files
 - **Real Player Names**: Displays actual player names, positions, and teams
 - **Multi-week Data**: Fetches all weeks from 1 through current week
@@ -58,7 +58,9 @@ The script fetches and updates the following data each time it runs:
 
 ### Basic Usage
 
-#### Option 1: Using Command Line (Quick Start)
+#### Step 1: Fetch League Data
+
+**Option 1: Using Command Line (Quick Start)**
 
 1. **Run the script with your league ID:**
    ```bash
@@ -70,19 +72,12 @@ The script fetches and updates the following data each time it runs:
    python sleeper_league_data.py 1264686617134628864
    ```
 
-   **This will:**
-   - Fetch all league data from Sleeper API
-   - Start a web server automatically
-   - Open your browser to the interactive interface
-   - Display the server URL in the terminal
-
-#### Option 2: Using .env File (Recommended for Automation)
+**Option 2: Using .env File (Recommended for Automation)**
 
 1. **Create a .env file** in your sleeper directory:
    ```env
    # Copy this content to a file named ".env"
    SLEEPER_LEAGUE_ID=1264686617134628864
-   WEB_SERVER_PORT=8000
    ```
 
 2. **Run the script** (no arguments needed):
@@ -90,39 +85,57 @@ The script fetches and updates the following data each time it runs:
    python sleeper_league_data.py
    ```
 
-   **This will:**
-   - Read the league ID from your .env file
-   - Fetch all league data and start the web server
-   - Open your browser automatically
+**This will:**
+- Fetch all league data from Sleeper API
+- Save data to JSON files
+- Create `web_interface_data.json` for the web interface
+- Display league summary in the terminal
 
-#### Interactive Web Interface
+#### Step 2: View the Web Interface
 
-**IMPORTANT**: You must run the Python script to use the web interface. The script includes a built-in web server that serves the interactive interface.
+After fetching the data, you can view it using the included web interface:
 
-When you run the script, it will automatically:
-1. **Fetch all weekly data** (weeks 1 through current week)
-2. **Find an available port** (starts with 8000, uses 8001, 8002, etc. if needed)
-3. **Launch a web server** with the interactive interface
-4. **Open your browser** automatically to the correct URL
+**Option 1: Using the Included Server Script (Recommended)**
 
-**Web Interface Features:**
-- **Two Interface Views**:
-  - **Player Points**: Week-by-week analysis with dropdown selection
-  - **Team Rosters**: Complete roster breakdowns and standings
+```bash
+./start_server.sh
+```
+
+Or with a custom port:
+```bash
+./start_server.sh 8080
+```
+
+**Option 2: Using Python's Built-in Server**
+
+```bash
+python3 -m http.server 8080
+```
+
+**Option 3: Using Any Web Server**
+
+Since the files are now static HTML, you can serve them with any web server (Apache, Nginx, etc.) or even open them directly in a browser via file:// (though HTTP serving is recommended to avoid CORS issues).
+
+#### Web Interface Features
+
+The interface includes two main views:
+
+- **Team Rosters** (`index.html`): Complete roster breakdowns and standings
+- **Player Points** (`sleeper_web_interface.html`): Week-by-week analysis with dropdown selection
+
+**Features:**
 - **Navigation**: Switch between views using the navigation buttons
 - **Week Selection Dropdown**: Choose any week to analyze player performance
 - **Detailed Player Cards**: Points, positions, teams, and starter indicators
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Real-time Data**: All data is fetched fresh from Sleeper API each time you run the script
-
-**⚠️ Note**: The old method of using `python3 -m http.server` will NOT work with the new interactive features. You must run the Python script directly.
+- **Static Files**: No server-side processing required
 
 ## 🔄 Scheduling Automatic Updates
 
-**Current Status**: The script does NOT automatically run on a schedule. You need to run it manually each time you want updated data.
+**Current Status**: The data fetching script does NOT automatically run on a schedule. You need to run it manually each time you want updated data.
 
 ### Option 1: Manual Updates
-Run the script whenever you want fresh data:
+Run the data fetching script whenever you want fresh data:
 ```bash
 # With command line argument
 python sleeper_league_data.py YOUR_LEAGUE_ID
@@ -130,6 +143,8 @@ python sleeper_league_data.py YOUR_LEAGUE_ID
 # Or with .env file (recommended)
 python sleeper_league_data.py
 ```
+
+After fetching new data, the web interface will automatically show the updated information when you refresh your browser.
 
 ### Option 2: Set Up Automated Scheduling
 
@@ -140,7 +155,7 @@ python sleeper_league_data.py
    crontab -e
    ```
 
-2. **Add a scheduled job** (example: update every hour during season):
+2. **Add a scheduled job** (example: update data every hour during season):
    ```bash
    # Update league data every hour from September through January (using .env file)
    0 * * 9-12,1 * cd /path/to/sleeper && source venv/bin/activate && python sleeper_league_data.py

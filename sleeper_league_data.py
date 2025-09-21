@@ -9,6 +9,8 @@ This script fetches comprehensive league data from the Sleeper API including:
 - Current week matchups
 - Draft information (if available)
 
+The script saves all data to JSON files for use by static HTML interfaces.
+
 Usage: python sleeper_league_data.py <league_id>
 """
 
@@ -18,11 +20,6 @@ import sys
 import os
 from typing import Dict, List, Optional
 import time
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-import urllib.parse
-import threading
-import webbrowser
-import socket
 
 
 class SleeperAPI:
@@ -94,8 +91,8 @@ class SleeperAPI:
         return matchups_by_week
 
 
-def format_player_points_data(matchups_by_week: Dict[int, List[Dict]], players_data: Dict, users_data: List[Dict], rosters_data: List[Dict]) -> Dict:
-    """Format player points data for web interface."""
+def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players_data: Dict, users_data: List[Dict], rosters_data: List[Dict], league_info: Dict, current_week: int, league_id: str) -> None:
+    """Save formatted data for web interface consumption."""
     
     # Create roster to user mapping
     roster_to_user = {}
@@ -152,57 +149,20 @@ def format_player_points_data(matchups_by_week: Dict[int, List[Dict]], players_d
         
         formatted_data['weeks'].append(week_data)
     
-    return formatted_data
-
-
-class SleeperDataHandler(SimpleHTTPRequestHandler):
-    """Custom HTTP handler for serving Sleeper data."""
+    # Add league info to formatted data
+    formatted_data['league_info'] = {
+        'name': league_info.get('name', 'Unknown League'),
+        'league_id': league_id,
+        'season': league_info.get('season'),
+        'current_week': current_week,
+        'total_rosters': league_info.get('total_rosters')
+    }
     
-    league_data = None  # Class variable to store league data
+    # Save formatted data for web interface
+    with open('web_interface_data.json', 'w') as f:
+        json.dump(formatted_data, f, indent=2)
     
-    def do_GET(self):
-        print(f"Received request for: {self.path}")  # Debug logging
-        
-        if self.path == '/api/data':
-            try:
-                self.send_response(200)
-                self.send_header('Content-type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                
-                if self.league_data is None:
-                    error_response = {"error": "League data not available"}
-                    self.wfile.write(json.dumps(error_response).encode())
-                else:
-                    self.wfile.write(json.dumps(self.league_data).encode())
-                    
-            except Exception as e:
-                print(f"Error serving API data: {e}")
-                self.send_error(500, f"Internal server error: {e}")
-                
-        elif self.path == '/' or self.path == '/sleeper_web_interface.html':
-            try:
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                with open('sleeper_web_interface.html', 'r') as f:
-                    self.wfile.write(f.read().encode())
-            except Exception as e:
-                print(f"Error serving sleeper_web_interface.html: {e}")
-                self.send_error(404, f"File not found: {e}")
-                
-        elif self.path == '/index.html':
-            try:
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                with open('index.html', 'r') as f:
-                    self.wfile.write(f.read().encode())
-            except Exception as e:
-                print(f"Error serving index.html: {e}")
-                self.send_error(404, f"File not found: {e}")
-        else:
-            super().do_GET()
+    print("Formatted data saved to web_interface_data.json")
 
 
 def format_league_summary(league_data: Dict, users_data: List[Dict], rosters_data: List[Dict]) -> str:
@@ -288,45 +248,6 @@ def get_league_id():
     sys.exit(1)
 
 
-def find_available_port(start_port: int = 8000, max_attempts: int = 10) -> int:
-    """Find an available port starting from start_port."""
-    for port in range(start_port, start_port + max_attempts):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(('localhost', port))
-                return port
-        except OSError:
-            continue
-    raise RuntimeError(f"No available ports found in range {start_port}-{start_port + max_attempts}")
-
-
-def start_web_server(league_data: Dict, port: int = 8000):
-    """Start a web server to serve the league data."""
-    # Set the league data as a class variable
-    SleeperDataHandler.league_data = league_data
-    
-    # Find an available port if the default is in use
-    try:
-        available_port = find_available_port(port)
-        if available_port != port:
-            print(f"Port {port} is in use, using port {available_port} instead")
-        port = available_port
-    except RuntimeError as e:
-        print(f"Error finding available port: {e}")
-        return
-    
-    server = HTTPServer(('localhost', port), SleeperDataHandler)
-    print(f"\nStarting web server at http://localhost:{port}")
-    print("Opening browser...")
-    
-    # Open browser in a separate thread
-    threading.Timer(1.0, lambda: webbrowser.open(f'http://localhost:{port}')).start()
-    
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\nShutting down web server...")
-        server.shutdown()
 
 
 def main():
@@ -451,22 +372,19 @@ def main():
     print(f"\nAll data has been saved to JSON files for detailed analysis.")
     print("You can open these files to explore the complete league data structure.")
     
-    # Format data for web interface
+    # Save formatted data for web interface
     if players_data and users and rosters and matchups_by_week:
-        print("\nPreparing web interface...")
-        formatted_data = format_player_points_data(matchups_by_week, players_data, users, rosters)
+        print("\nPreparing formatted data for web interface...")
+        save_formatted_data_for_web(matchups_by_week, players_data, users, rosters, league_info, current_week, league_id)
         
-        # Add league info to formatted data
-        formatted_data['league_info'] = {
-            'name': league_info.get('name', 'Unknown League'),
-            'league_id': league_id,
-            'season': league_info.get('season'),
-            'current_week': current_week,
-            'total_rosters': league_info.get('total_rosters')
-        }
-        
-        # Start web server
-        start_web_server(formatted_data)
+        print("\n" + "=" * 60)
+        print("WEB INTERFACE READY")
+        print("=" * 60)
+        print("You can now open index.html or sleeper_web_interface.html in your browser")
+        print("to view the league data. The files will work as static HTML pages.")
+        print("\nTo serve the files locally, you can use:")
+        print("  python3 -m http.server 8080")
+        print("  Then visit: http://localhost:8080")
 
 
 if __name__ == "__main__":
