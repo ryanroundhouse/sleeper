@@ -212,7 +212,7 @@
             padding-bottom: 5px;
         }
 
-        .starters, .bench {
+        .starters, .bench, .scrubs {
             margin-bottom: 20px;
         }
 
@@ -254,6 +254,57 @@
 
         .player.starter:hover {
             background: #c3f0d9;
+        }
+
+        .scrubs .section-label {
+            color: #95a5a6;
+            opacity: 0.8;
+        }
+
+        .scrubs .player {
+            background: #f8f9fa;
+            border-left-color: #bdc3c7;
+            opacity: 0.7;
+        }
+
+        .scrubs .player:hover {
+            background: #e9ecef;
+            opacity: 0.9;
+        }
+
+        .position-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: white;
+            margin-right: 8px;
+            min-width: 24px;
+            text-align: center;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .position-badge.QB {
+            background-color: #e74c3c;
+        }
+
+        .position-badge.RB {
+            background-color: #87ceeb;
+            color: #2c3e50;
+            text-shadow: none;
+        }
+
+        .position-badge.WR {
+            background-color: #2980b9;
+        }
+
+        .position-badge.TE {
+            background-color: #f39c12;
+        }
+
+        .position-badge.FLEX {
+            background: linear-gradient(135deg, #2980b9 0%, #87ceeb 50%, #f39c12 100%);
         }
 
         .player-name {
@@ -401,17 +452,31 @@
 
             calculatePlayerPoints(webData) {
                 this.playerPoints = {};
+                this.totalPlayerPoints = {};
                 
-                // Sum up points for each player across all weeks
+                // Calculate both starter points and total seasonal points
                 if (webData.weeks) {
                     webData.weeks.forEach(week => {
                         week.matchups.forEach(matchup => {
+                            // Calculate total seasonal points (including bench)
                             if (matchup.players_points) {
                                 Object.entries(matchup.players_points).forEach(([playerId, points]) => {
+                                    if (!this.totalPlayerPoints[playerId]) {
+                                        this.totalPlayerPoints[playerId] = 0;
+                                    }
+                                    this.totalPlayerPoints[playerId] += points || 0;
+                                });
+                            }
+                            
+                            // Calculate starter-only points
+                            if (matchup.starters && matchup.starters_points) {
+                                // Only count points when player was actually a starter
+                                matchup.starters.forEach((playerId, index) => {
                                     if (!this.playerPoints[playerId]) {
                                         this.playerPoints[playerId] = 0;
                                     }
-                                    this.playerPoints[playerId] += points || 0;
+                                    // Add the points from starters_points array (actual scoring points)
+                                    this.playerPoints[playerId] += matchup.starters_points[index] || 0;
                                 });
                             }
                         });
@@ -450,7 +515,7 @@
             }
 
             getOptimalLineup(roster) {
-                if (!roster.players) return { starters: [], bench: [] };
+                if (!roster.players) return { starters: [], bench: [], scrubs: [] };
                 
                 // Get all players with their positions and points
                 const playersWithData = roster.players.map(playerId => {
@@ -464,14 +529,19 @@
                     };
                 }).filter(player => player.position); // Only include players with known positions
                 
-                // Sort by points (highest first)
-                playersWithData.sort((a, b) => b.points - a.points);
+                // Separate players with starter points from scrubs (0 starter points)
+                const playersWithStarterPoints = playersWithData.filter(p => p.points > 0);
+                const scrubs = playersWithData.filter(p => p.points === 0);
                 
-                // Separate by position
-                const qbs = playersWithData.filter(p => p.position === 'QB');
-                const rbs = playersWithData.filter(p => p.position === 'RB');
-                const wrs = playersWithData.filter(p => p.position === 'WR');
-                const tes = playersWithData.filter(p => p.position === 'TE');
+                // Sort by points (highest first)
+                playersWithStarterPoints.sort((a, b) => b.points - a.points);
+                scrubs.sort((a, b) => (this.totalPlayerPoints[b.id] || 0) - (this.totalPlayerPoints[a.id] || 0));
+                
+                // Separate by position (only players with starter points)
+                const qbs = playersWithStarterPoints.filter(p => p.position === 'QB');
+                const rbs = playersWithStarterPoints.filter(p => p.position === 'RB');
+                const wrs = playersWithStarterPoints.filter(p => p.position === 'WR');
+                const tes = playersWithStarterPoints.filter(p => p.position === 'TE');
                 
                 const starters = [];
                 const used = new Set();
@@ -508,10 +578,10 @@
                     used.add(flexCandidates[0].id);
                 }
                 
-                // Bench is everyone else
-                const bench = playersWithData.filter(p => !used.has(p.id));
+                // Bench is everyone else with starter points
+                const bench = playersWithStarterPoints.filter(p => !used.has(p.id));
                 
-                return { starters, bench };
+                return { starters, bench, scrubs };
             }
 
             createTeamCard(roster, position) {
@@ -552,12 +622,16 @@
                     <div class="roster-section">
                         <div class="roster-title">Roster</div>
                         <div class="starters">
-                            <div class="section-label">Starters</div>
+                            <div class="section-label">Beasts</div>
                             <div class="player-list" id="starters-${roster.roster_id}"></div>
                         </div>
                         <div class="bench">
-                            <div class="section-label">Bench</div>
+                            <div class="section-label">Part Timers</div>
                             <div class="player-list" id="bench-${roster.roster_id}"></div>
+                        </div>
+                        <div class="scrubs">
+                            <div class="section-label">Scrubs</div>
+                            <div class="player-list" id="scrubs-${roster.roster_id}"></div>
                         </div>
                     </div>
                 `;
@@ -587,6 +661,17 @@
                     benchContainer.innerHTML = '<div class="player">No bench players</div>';
                 }
 
+                // Add scrubs (players with 0 starter points)
+                const scrubsContainer = card.querySelector(`#scrubs-${roster.roster_id}`);
+                if (lineup.scrubs.length > 0) {
+                    lineup.scrubs.forEach(player => {
+                        const playerDiv = this.createPlayerElementFromData(player, false);
+                        scrubsContainer.appendChild(playerDiv);
+                    });
+                } else {
+                    scrubsContainer.innerHTML = '<div class="player">No scrubs</div>';
+                }
+
                 return card;
             }
 
@@ -594,15 +679,20 @@
                 const playerDiv = document.createElement('div');
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
-                const positionText = playerInfo.position ? ` (${playerInfo.position}${playerInfo.team ? ' - ' + playerInfo.team : ''})` : '';
-                const totalPoints = this.playerPoints[playerId] || 0;
+                const position = playerInfo.position || '';
+                const teamText = playerInfo.team ? ` - ${playerInfo.team}` : '';
+                const starterPoints = this.playerPoints[playerId] || 0;
+                const totalPoints = this.totalPlayerPoints[playerId] || 0;
+                
+                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
                 
                 playerDiv.innerHTML = `
                     <div class="player-info">
+                        ${positionBadge}
                         <span class="player-name">${playerInfo.displayName}</span>
-                        <span class="player-position">${positionText}</span>
+                        <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${totalPoints.toFixed(1)}</span>
+                    <span class="player-points">${starterPoints.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
                 `;
                 
                 return playerDiv;
@@ -613,14 +703,18 @@
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
                 const position = player.isFlex ? 'FLEX' : player.position;
-                const positionText = position ? ` (${position}${player.info.team ? ' - ' + player.info.team : ''})` : '';
+                const teamText = player.info.team ? ` - ${player.info.team}` : '';
+                const totalPoints = this.totalPlayerPoints[player.id] || 0;
+                
+                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
                 
                 playerDiv.innerHTML = `
                     <div class="player-info">
+                        ${positionBadge}
                         <span class="player-name">${player.info.displayName}</span>
-                        <span class="player-position">${positionText}</span>
+                        <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${player.points.toFixed(1)}</span>
+                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
                 `;
                 
                 return playerDiv;
