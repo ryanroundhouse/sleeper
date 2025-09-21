@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Least Important League - Stats</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .chart-container {
+            padding: 30px;
+            background: white;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .chart-tab {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .chart-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-tab:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 600px;
+            margin-bottom: 30px;
+        }
+
+        .legend-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .legend-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .toggle-all-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .toggle-all-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .legend-item:hover {
+            background: #e9ecef;
+        }
+
+        .legend-item.hidden {
+            opacity: 0.5;
+            background: #f8f9fa;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-text {
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .legend-stats {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: right;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            font-size: 1.1rem;
+        }
+
+        .stats-summary {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .chart-wrapper {
+                height: 400px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .navigation {
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 100%;
+                text-align: center;
+            }
+
+            .legend-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .legend-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .toggle-all-btn {
+                width: 100%;
+            }
+
+            .chart-tabs {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .chart-tab {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="league-name">Loading League...</h1>
+            <p id="league-info">Fetching league information...</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <a href="index.html" class="nav-button">Season Results</a>
+                <a href="weekly.html" class="nav-button">Weekly Results</a>
+                <a href="stats.html" class="nav-button active">Stats</a>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <p>Loading team statistics...</p>
+        </div>
+        
+        <div id="stats-container" class="chart-container" style="display: none;">
+            <div class="stats-summary" id="stats-summary"></div>
+            
+            <div class="chart-tabs">
+                <button class="chart-tab active" data-chart="bar">Total Team Score</button>
+                <button class="chart-tab" data-chart="line">Week by Week</button>
+                <button class="chart-tab" data-chart="cumulative">Week over Time</button>
+            </div>
+            
+            <div class="chart-wrapper">
+                <canvas id="scoresChart"></canvas>
+            </div>
+            
+            <div class="legend-container">
+                <div class="legend-header">
+                    <div class="legend-title">Team Legend (Click to Show/Hide)</div>
+                    <button id="toggle-all-btn" class="toggle-all-btn">Deselect All</button>
+                </div>
+                <div class="legend-grid" id="legend-container"></div>
+            </div>
+        </div>
+        
+        <div id="error" class="error" style="display: none;">
+            <p>Error loading league data. Please make sure you've run the Python script first and all JSON files are in the same directory.</p>
+        </div>
+    </div>
+
+    <script>
+        class StatsViewer {
+            constructor() {
+                this.leagueData = null;
+                this.chart = null;
+                this.teamColors = [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
+                    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384',
+                    '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
+                ];
+                this.hiddenTeams = new Set();
+                this.allTeamsVisible = true;
+                this.currentChartType = 'bar';
+            }
+
+            async loadData() {
+                try {
+                    const response = await fetch('web_interface_data.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    this.leagueData = await response.json();
+                    
+                    // Update header
+                    document.getElementById('league-name').textContent = this.leagueData.league_info.name;
+                    document.getElementById('league-info').textContent = 
+                        `Season ${this.leagueData.league_info.season} • ${this.leagueData.league_info.total_rosters} Teams • Team Performance Over Time`;
+                    
+                    // Process and display data
+                    this.processTeamData();
+                    this.createChart();
+                    this.createLegend();
+                    this.createStatsSummary();
+                    this.setupToggleButton();
+                    this.setupChartTabs();
+                    
+                    // Show the stats container
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('stats-container').style.display = 'block';
+                    
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.showError();
+                }
+            }
+
+            processTeamData() {
+                this.teamData = new Map();
+                
+                // Process each week's data
+                this.leagueData.weeks.forEach(week => {
+                    week.matchups.forEach(matchup => {
+                        if (!this.teamData.has(matchup.roster_id)) {
+                            this.teamData.set(matchup.roster_id, {
+                                name: matchup.team_name,
+                                displayName: matchup.display_name,
+                                weeks: [],
+                                totalPoints: 0,
+                                avgPoints: 0,
+                                highestWeek: 0,
+                                lowestWeek: Infinity
+                            });
+                        }
+                        
+                        const team = this.teamData.get(matchup.roster_id);
+                        team.weeks.push({
+                            week: week.week,
+                            points: matchup.total_points
+                        });
+                        team.totalPoints += matchup.total_points;
+                        team.highestWeek = Math.max(team.highestWeek, matchup.total_points);
+                        team.lowestWeek = Math.min(team.lowestWeek, matchup.total_points);
+                    });
+                });
+                
+                // Calculate averages and sort weeks
+                this.teamData.forEach(team => {
+                    team.avgPoints = team.totalPoints / team.weeks.length;
+                    team.weeks.sort((a, b) => a.week - b.week);
+                });
+            }
+
+            createChart() {
+                if (this.chart) {
+                    this.chart.destroy();
+                }
+                
+                const ctx = document.getElementById('scoresChart').getContext('2d');
+                
+                if (this.currentChartType === 'line') {
+                    this.createLineChart(ctx);
+                } else if (this.currentChartType === 'bar') {
+                    this.createStackedBarChart(ctx);
+                } else if (this.currentChartType === 'cumulative') {
+                    this.createCumulativeChart(ctx);
+                }
+            }
+
+            createLineChart(ctx) {
+                // Get all weeks
+                const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                
+                // Sort teams by total points to match legend order
+                const sortedTeams = Array.from(this.teamData.entries()).sort((a, b) => {
+                    return b[1].totalPoints - a[1].totalPoints;
+                });
+                
+                // Create datasets for each team
+                const datasets = [];
+                
+                sortedTeams.forEach(([rosterId, team], colorIndex) => {
+                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    
+                    // Create data points for each week
+                    const data = weeks.map(week => {
+                        const weekData = team.weeks.find(w => w.week === week);
+                        return weekData ? weekData.points : null;
+                    });
+                    
+                    datasets.push({
+                        label: team.name,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        rosterId: rosterId
+                    });
+                });
+                
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: weeks.map(w => `Week ${w}`),
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Weekly Team Scores',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                color: '#2c3e50'
+                            },
+                            legend: {
+                                display: false // We'll use our custom legend
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    },
+                                    beforeBody: function(context) {
+                                        // Sort the tooltip items by points in descending order
+                                        context.sort((a, b) => b.parsed.y - a.parsed.y);
+                                        return [];
+                                    },
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(1)} pts`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Week',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Points',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                beginAtZero: false
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            createStackedBarChart(ctx) {
+                // Get all weeks
+                const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                
+                // Sort teams by total points (highest first)
+                const sortedTeams = Array.from(this.teamData.entries()).sort((a, b) => {
+                    return b[1].totalPoints - a[1].totalPoints;
+                });
+                
+                // Create team labels (y-axis)
+                const teamLabels = sortedTeams.map(([rosterId, team]) => team.name);
+                
+                // Create datasets for each week
+                const datasets = [];
+                
+                weeks.forEach((week, weekIndex) => {
+                    // Generate a color for this week
+                    const hue = (weekIndex * 360 / weeks.length) % 360;
+                    const color = `hsl(${hue}, 70%, 60%)`;
+                    
+                    // Get data for this week across all teams
+                    const weekData = sortedTeams.map(([rosterId, team]) => {
+                        const weekPoints = team.weeks.find(w => w.week === week);
+                        return weekPoints ? weekPoints.points : 0;
+                    });
+                    
+                    datasets.push({
+                        label: `Week ${week}`,
+                        data: weekData,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1,
+                        week: week
+                    });
+                });
+                
+                this.chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: teamLabels,
+                        datasets: datasets
+                    },
+                    options: {
+                        indexAxis: 'y', // This makes it horizontal
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: true,
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Points',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            y: {
+                                stacked: true,
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Teams',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Team Season Breakdown by Week',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                color: '#2c3e50'
+                            },
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 15,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label; // Team name
+                                    },
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.x.toFixed(1)} pts`;
+                                    },
+                                    afterBody: function(context) {
+                                        // Calculate total for this team
+                                        const teamIndex = context[0].dataIndex;
+                                        let total = 0;
+                                        context[0].chart.data.datasets.forEach(dataset => {
+                                            total += dataset.data[teamIndex] || 0;
+                                        });
+                                        return [`Total: ${total.toFixed(1)} pts`];
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'y',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            createCumulativeChart(ctx) {
+                // Get all weeks
+                const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                
+                // Sort teams by total points to match legend order
+                const sortedTeams = Array.from(this.teamData.entries()).sort((a, b) => {
+                    return b[1].totalPoints - a[1].totalPoints;
+                });
+                
+                // Create datasets for each team with cumulative scores
+                const datasets = [];
+                
+                sortedTeams.forEach(([rosterId, team], colorIndex) => {
+                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    
+                    // Create cumulative data points for each week
+                    let cumulativeTotal = 0;
+                    const data = weeks.map(week => {
+                        const weekData = team.weeks.find(w => w.week === week);
+                        if (weekData) {
+                            cumulativeTotal += weekData.points;
+                        }
+                        return cumulativeTotal;
+                    });
+                    
+                    datasets.push({
+                        label: team.name,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.1,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        rosterId: rosterId
+                    });
+                });
+                
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: weeks.map(w => `Week ${w}`),
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Cumulative Team Scores Over Time',
+                                font: {
+                                    size: 18,
+                                    weight: 'bold'
+                                },
+                                color: '#2c3e50'
+                            },
+                            legend: {
+                                display: false // We'll use our custom legend
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    },
+                                    beforeBody: function(context) {
+                                        // Sort the tooltip items by cumulative points in descending order
+                                        context.sort((a, b) => b.parsed.y - a.parsed.y);
+                                        return [];
+                                    },
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(1)} pts (total)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Week',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            y: {
+                                display: true,
+                                title: {
+                                    display: true,
+                                    text: 'Cumulative Points',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    color: '#2c3e50'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                },
+                                beginAtZero: true
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
+
+            createLegend() {
+                const container = document.getElementById('legend-container');
+                container.innerHTML = '';
+                
+                // Convert teamData to array and sort by total points (descending)
+                const sortedTeams = Array.from(this.teamData.entries()).sort((a, b) => {
+                    return b[1].totalPoints - a[1].totalPoints;
+                });
+                
+                let colorIndex = 0;
+                sortedTeams.forEach(([rosterId, team]) => {
+                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    
+                    const legendItem = document.createElement('div');
+                    legendItem.className = 'legend-item';
+                    legendItem.dataset.rosterId = rosterId;
+                    
+                    legendItem.innerHTML = `
+                        <div class="legend-color" style="background-color: ${color}"></div>
+                        <div class="legend-text">${team.name}</div>
+                        <div class="legend-stats">
+                            Total: ${team.totalPoints.toFixed(1)}<br>
+                            Avg: ${team.avgPoints.toFixed(1)}
+                        </div>
+                    `;
+                    
+                    legendItem.addEventListener('click', () => {
+                        this.toggleTeam(rosterId, legendItem);
+                    });
+                    
+                    container.appendChild(legendItem);
+                    colorIndex++;
+                });
+            }
+
+            createStatsSummary() {
+                const container = document.getElementById('stats-summary');
+                container.innerHTML = '';
+                
+                // Get all completed weeks (weeks that have data for all teams)
+                const allWeeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                const completedWeeks = [];
+                
+                // Check which weeks are completed (have data for all teams)
+                allWeeks.forEach(week => {
+                    const teamsWithDataThisWeek = new Set();
+                    this.teamData.forEach(team => {
+                        const weekData = team.weeks.find(w => w.week === week);
+                        if (weekData && weekData.points > 0) {
+                            teamsWithDataThisWeek.add(team.name);
+                        }
+                    });
+                    
+                    // Consider a week completed if most teams have data (allows for some flexibility)
+                    if (teamsWithDataThisWeek.size >= this.teamData.size * 0.8) {
+                        completedWeeks.push(week);
+                    }
+                });
+                
+                // Calculate stats only from completed weeks
+                const completedScores = [];
+                let highestScore = 0;
+                let lowestScore = Infinity;
+                let highestTeam = '';
+                let lowestTeam = '';
+                let highestWeek = 0;
+                let lowestWeek = 0;
+                
+                this.teamData.forEach(team => {
+                    team.weeks.forEach(week => {
+                        // For highest score, include all weeks
+                        if (week.points > highestScore) {
+                            highestScore = week.points;
+                            highestTeam = team.name;
+                            highestWeek = week.week;
+                        }
+                        
+                        // Only include scores from completed weeks for other calculations
+                        if (completedWeeks.includes(week.week) && week.points > 0) {
+                            completedScores.push(week.points);
+                            
+                            if (week.points < lowestScore) {
+                                lowestScore = week.points;
+                                lowestTeam = team.name;
+                                lowestWeek = week.week;
+                            }
+                        }
+                    });
+                });
+                
+                const avgWeeklyScore = completedScores.length > 0 ? 
+                    completedScores.reduce((a, b) => a + b, 0) / completedScores.length : 0;
+                
+                const stats = [
+                    {
+                        value: avgWeeklyScore.toFixed(1),
+                        label: 'League Average Weekly Score'
+                    },
+                    {
+                        value: highestScore.toFixed(1),
+                        label: `Highest Score (${highestTeam}, Week ${highestWeek})`
+                    },
+                    {
+                        value: lowestScore === Infinity ? '0.0' : lowestScore.toFixed(1),
+                        label: `Lowest Score (${lowestTeam}, Week ${lowestWeek})`
+                    }
+                ];
+                
+                stats.forEach(stat => {
+                    const statCard = document.createElement('div');
+                    statCard.className = 'stat-card';
+                    statCard.innerHTML = `
+                        <div class="stat-value">${stat.value}</div>
+                        <div class="stat-label">${stat.label}</div>
+                    `;
+                    container.appendChild(statCard);
+                });
+            }
+
+            setupToggleButton() {
+                const toggleBtn = document.getElementById('toggle-all-btn');
+                toggleBtn.addEventListener('click', () => {
+                    this.toggleAllTeams();
+                });
+            }
+
+            setupChartTabs() {
+                const chartTabs = document.querySelectorAll('.chart-tab');
+                chartTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const chartType = tab.dataset.chart;
+                        if (chartType !== this.currentChartType) {
+                            // Update active tab
+                            chartTabs.forEach(t => t.classList.remove('active'));
+                            tab.classList.add('active');
+                            
+                            // Switch chart type
+                            this.currentChartType = chartType;
+                            this.createChart();
+                            
+                            // Reset hidden teams state
+                            this.hiddenTeams.clear();
+                            this.allTeamsVisible = true;
+                            document.getElementById('toggle-all-btn').textContent = 'Deselect All';
+                            
+                            // Update legend visual state
+                            const legendItems = document.querySelectorAll('.legend-item');
+                            legendItems.forEach(item => {
+                                item.classList.remove('hidden');
+                            });
+                        }
+                    });
+                });
+            }
+
+            toggleAllTeams() {
+                const toggleBtn = document.getElementById('toggle-all-btn');
+                const legendItems = document.querySelectorAll('.legend-item');
+                
+                if (this.currentChartType === 'line' || this.currentChartType === 'cumulative') {
+                    // Line chart: hide/show datasets (teams)
+                    if (this.allTeamsVisible) {
+                        // Hide all teams
+                        this.chart.data.datasets.forEach((dataset, index) => {
+                            this.chart.hide(index);
+                            this.hiddenTeams.add(dataset.rosterId);
+                        });
+                        
+                        legendItems.forEach(item => {
+                            item.classList.add('hidden');
+                        });
+                        
+                        toggleBtn.textContent = 'Select All';
+                        this.allTeamsVisible = false;
+                    } else {
+                        // Show all teams
+                        this.chart.data.datasets.forEach((dataset, index) => {
+                            this.chart.show(index);
+                            this.hiddenTeams.delete(dataset.rosterId);
+                        });
+                        
+                        legendItems.forEach(item => {
+                            item.classList.remove('hidden');
+                        });
+                        
+                        toggleBtn.textContent = 'Deselect All';
+                        this.allTeamsVisible = true;
+                    }
+                } else {
+                    // Bar chart: hide/show data points for teams
+                    if (this.allTeamsVisible) {
+                        // Hide all teams by setting their data to 0
+                        this.chart.data.datasets.forEach(dataset => {
+                            dataset.data = dataset.data.map((value, index) => {
+                                const rosterId = this.getSortedTeamIds()[index];
+                                this.hiddenTeams.add(rosterId);
+                                return 0;
+                            });
+                        });
+                        
+                        legendItems.forEach(item => {
+                            item.classList.add('hidden');
+                        });
+                        
+                        toggleBtn.textContent = 'Select All';
+                        this.allTeamsVisible = false;
+                    } else {
+                        // Show all teams by restoring their original data
+                        const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                        const sortedTeams = Array.from(this.teamData.entries()).sort((a, b) => {
+                            return b[1].totalPoints - a[1].totalPoints;
+                        });
+                        
+                        this.chart.data.datasets.forEach((dataset, weekIndex) => {
+                            const week = weeks[weekIndex];
+                            dataset.data = sortedTeams.map(([rosterId, team]) => {
+                                this.hiddenTeams.delete(rosterId);
+                                const weekPoints = team.weeks.find(w => w.week === week);
+                                return weekPoints ? weekPoints.points : 0;
+                            });
+                        });
+                        
+                        legendItems.forEach(item => {
+                            item.classList.remove('hidden');
+                        });
+                        
+                        toggleBtn.textContent = 'Deselect All';
+                        this.allTeamsVisible = true;
+                    }
+                }
+                
+                this.chart.update();
+            }
+
+            toggleTeam(rosterId, legendItem) {
+                if (this.currentChartType === 'line' || this.currentChartType === 'cumulative') {
+                    // Line chart: hide/show dataset
+                    const datasetIndex = this.chart.data.datasets.findIndex(ds => ds.rosterId == rosterId);
+                    
+                    if (datasetIndex !== -1) {
+                        const isHidden = this.hiddenTeams.has(rosterId);
+                        
+                        if (isHidden) {
+                            // Show the team
+                            this.chart.show(datasetIndex);
+                            this.hiddenTeams.delete(rosterId);
+                            legendItem.classList.remove('hidden');
+                        } else {
+                            // Hide the team
+                            this.chart.hide(datasetIndex);
+                            this.hiddenTeams.add(rosterId);
+                            legendItem.classList.add('hidden');
+                        }
+                        
+                        // Update the toggle button state
+                        this.updateToggleButtonState();
+                        this.chart.update();
+                    }
+                } else {
+                    // Bar chart: hide/show team's data across all weeks
+                    const sortedTeamIds = this.getSortedTeamIds();
+                    const teamIndex = sortedTeamIds.indexOf(rosterId);
+                    
+                    if (teamIndex !== -1) {
+                        const isHidden = this.hiddenTeams.has(rosterId);
+                        
+                        if (isHidden) {
+                            // Show the team - restore original data
+                            const team = this.teamData.get(rosterId);
+                            const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                            
+                            this.chart.data.datasets.forEach((dataset, weekIndex) => {
+                                const week = weeks[weekIndex];
+                                const weekPoints = team.weeks.find(w => w.week === week);
+                                dataset.data[teamIndex] = weekPoints ? weekPoints.points : 0;
+                            });
+                            
+                            this.hiddenTeams.delete(rosterId);
+                            legendItem.classList.remove('hidden');
+                        } else {
+                            // Hide the team - set data to 0
+                            this.chart.data.datasets.forEach(dataset => {
+                                dataset.data[teamIndex] = 0;
+                            });
+                            
+                            this.hiddenTeams.add(rosterId);
+                            legendItem.classList.add('hidden');
+                        }
+                        
+                        // Update the toggle button state
+                        this.updateToggleButtonState();
+                        this.chart.update();
+                    }
+                }
+            }
+
+            getSortedTeamIds() {
+                return Array.from(this.teamData.entries())
+                    .sort((a, b) => b[1].totalPoints - a[1].totalPoints)
+                    .map(([rosterId, team]) => rosterId);
+            }
+
+            updateToggleButtonState() {
+                const toggleBtn = document.getElementById('toggle-all-btn');
+                const totalTeams = this.teamData.size;
+                const hiddenTeams = this.hiddenTeams.size;
+                
+                if (hiddenTeams === 0) {
+                    toggleBtn.textContent = 'Deselect All';
+                    this.allTeamsVisible = true;
+                } else if (hiddenTeams === totalTeams) {
+                    toggleBtn.textContent = 'Select All';
+                    this.allTeamsVisible = false;
+                } else {
+                    toggleBtn.textContent = 'Deselect All';
+                    this.allTeamsVisible = true;
+                }
+            }
+
+            showError() {
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.innerHTML = `
+                    <h3>Failed to load league data</h3>
+                    <p><strong>Possible solutions:</strong></p>
+                    <ul style="text-align: left; display: inline-block; margin: 20px 0;">
+                        <li>Make sure you've run the Python script first: <code>python sleeper_league_data.py [league_id]</code></li>
+                        <li>Check that all JSON files exist in the same directory</li>
+                        <li>If serving locally, use: <code>python3 -m http.server 8080</code></li>
+                        <li>Make sure you're accessing via HTTP (not file://) to avoid CORS issues</li>
+                    </ul>
+                `;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Initialize the stats viewer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewer = new StatsViewer();
+            viewer.loadData();
+        });
+    </script>
+</body>
+</html>
