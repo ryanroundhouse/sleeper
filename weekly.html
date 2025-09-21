@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Least Important League - Teams & Rosters</title>
+    <title>Your Least Important League - Weekly Results</title>
     <style>
         * {
             margin: 0;
@@ -50,7 +50,8 @@
             padding: 20px 30px;
             border-bottom: 1px solid #e9ecef;
             display: flex;
-            justify-content: flex-start;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .nav-buttons {
@@ -78,6 +79,32 @@
         .nav-button:hover {
             background: #667eea;
             color: white;
+        }
+
+        .week-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .week-selector label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .week-selector select {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .week-selector select:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .loading {
@@ -351,7 +378,6 @@
             .navigation {
                 padding: 15px;
                 flex-direction: column;
-                align-items: flex-start;
                 gap: 15px;
             }
 
@@ -376,13 +402,19 @@
 
         <div class="navigation">
             <div class="nav-buttons">
-                <button class="nav-button active">Season Results</button>
-                <button class="nav-button" onclick="window.location.href='weekly.html'">Weekly Results</button>
+                <button class="nav-button" onclick="window.location.href='index.html'">Season Results</button>
+                <button class="nav-button active">Weekly Results</button>
+            </div>
+            <div class="week-selector">
+                <label for="week-select">Week:</label>
+                <select id="week-select">
+                    <option value="">Loading weeks...</option>
+                </select>
             </div>
         </div>
         
         <div id="loading" class="loading">
-            <p>Loading teams and rosters...</p>
+            <p>Loading teams and weekly data...</p>
         </div>
         
         <div id="teams-container" class="teams-grid" style="display: none;"></div>
@@ -393,158 +425,203 @@
     </div>
 
     <script>
-        class LeagueViewer {
+        class WeeklyLeagueViewer {
             constructor() {
-                this.players = {};
-                this.leagueInfo = {};
-                this.users = [];
-                this.rosters = [];
-                this.playerPoints = {};
+                this.leagueData = null;
+                this.currentWeek = null;
             }
 
             async loadData() {
                 try {
-                    // Load all required data from local JSON files
-                    const [playersResponse, leagueResponse, usersResponse, rostersResponse, webDataResponse] = await Promise.all([
-                        fetch('nfl_players.json'),
-                        fetch('league_1264686617134628864_info.json'),
-                        fetch('league_1264686617134628864_users.json'),
-                        fetch('league_1264686617134628864_rosters.json'),
-                        fetch('web_interface_data.json')
-                    ]);
-
-                    if (!playersResponse.ok || !leagueResponse.ok || !usersResponse.ok || !rostersResponse.ok || !webDataResponse.ok) {
-                        throw new Error('Failed to load local JSON files');
+                    const response = await fetch('web_interface_data.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
-
-                    this.players = await playersResponse.json();
-                    this.leagueInfo = await leagueResponse.json();
-                    this.users = await usersResponse.json();
-                    this.rosters = await rostersResponse.json();
-                    const webData = await webDataResponse.json();
+                    this.leagueData = await response.json();
                     
-                    this.calculatePlayerPoints(webData);
-                    this.displayLeague();
+                    // Update header
+                    document.getElementById('league-name').textContent = this.leagueData.league_info.name;
+                    document.getElementById('league-info').textContent = 
+                        `Season ${this.leagueData.league_info.season} • ${this.leagueData.league_info.total_rosters} Teams • Current Week: ${this.leagueData.league_info.current_week}`;
+                    
+                    // Populate week selector
+                    this.populateWeekSelector();
+                    
+                    // Set default week to current week
+                    this.currentWeek = this.leagueData.league_info.current_week;
+                    document.getElementById('week-select').value = this.currentWeek;
+                    
+                    // Display data for current week
+                    this.displayWeekData(this.currentWeek);
+                    
                 } catch (error) {
                     console.error('Error loading data:', error);
                     this.showError();
                 }
             }
 
-            getPlayerName(playerId) {
-                if (!playerId) return 'Unknown Player';
+            populateWeekSelector() {
+                const select = document.getElementById('week-select');
+                select.innerHTML = '';
                 
-                const player = this.players[playerId];
-                if (player) {
-                    const position = player.position || '';
-                    const team = player.team || '';
-                    return {
-                        name: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player',
-                        position: position,
-                        team: team,
-                        displayName: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player'
-                    };
+                this.leagueData.weeks.forEach(weekData => {
+                    const option = document.createElement('option');
+                    option.value = weekData.week;
+                    option.textContent = `Week ${weekData.week}`;
+                    select.appendChild(option);
+                });
+            }
+
+            displayWeekData(week) {
+                const weekData = this.leagueData.weeks.find(w => w.week === parseInt(week));
+                if (!weekData) {
+                    document.getElementById('error').textContent = `No data available for week ${week}`;
+                    document.getElementById('error').style.display = 'block';
+                    return;
                 }
-                return {
-                    name: `Player ${playerId}`,
-                    position: '',
-                    team: '',
-                    displayName: `Player ${playerId}`
-                };
-            }
 
-            calculatePlayerPoints(webData) {
-                this.playerPoints = {};
-                this.totalPlayerPoints = {};
-                
-                // Calculate both starter points and total seasonal points
-                if (webData.weeks) {
-                    webData.weeks.forEach(week => {
-                        week.matchups.forEach(matchup => {
-                            // Calculate total seasonal points (including bench)
-                            if (matchup.players_points) {
-                                Object.entries(matchup.players_points).forEach(([playerId, points]) => {
-                                    if (!this.totalPlayerPoints[playerId]) {
-                                        this.totalPlayerPoints[playerId] = 0;
-                                    }
-                                    this.totalPlayerPoints[playerId] += points || 0;
-                                });
-                            }
-                            
-                            // Calculate starter-only points
-                            if (matchup.starters && matchup.starters_points) {
-                                // Only count points when player was actually a starter
-                                matchup.starters.forEach((playerId, index) => {
-                                    if (!this.playerPoints[playerId]) {
-                                        this.playerPoints[playerId] = 0;
-                                    }
-                                    // Add the points from starters_points array (actual scoring points)
-                                    this.playerPoints[playerId] += matchup.starters_points[index] || 0;
-                                });
-                            }
-                        });
-                    });
-                }
-            }
-
-            getUserByOwnerId(ownerId) {
-                return this.users.find(user => user.user_id === ownerId);
-            }
-
-            displayLeague() {
-                // Update header
-                document.getElementById('league-name').textContent = this.leagueInfo.name || 'Fantasy League';
-                document.getElementById('league-info').textContent = 
-                    `${this.leagueInfo.season || ''} Season • ${this.leagueInfo.total_rosters || 0} Teams • Status: ${this.leagueInfo.status || 'Unknown'}`;
-
-                // Hide loading, show teams
                 document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
                 document.getElementById('teams-container').style.display = 'grid';
+                
+                this.displayTeams(weekData);
+            }
 
+            displayTeams(weekData) {
                 const container = document.getElementById('teams-container');
                 container.innerHTML = '';
 
-                // Sort rosters by total points (highest first)
-                const sortedRosters = [...this.rosters].sort((a, b) => {
-                    const aPoints = a.settings?.fpts || 0;
-                    const bPoints = b.settings?.fpts || 0;
-                    return bPoints - aPoints;
-                });
+                // Sort teams by total points (descending)
+                const sortedMatchups = weekData.matchups.sort((a, b) => b.total_points - a.total_points);
 
-                sortedRosters.forEach((roster, index) => {
-                    const teamCard = this.createTeamCard(roster, index + 1);
+                sortedMatchups.forEach((matchup, index) => {
+                    const teamCard = this.createTeamCard(matchup, index + 1);
                     container.appendChild(teamCard);
                 });
             }
 
-            getOptimalLineup(roster) {
-                if (!roster.players) return { starters: [], bench: [], scrubs: [] };
-                
+            createTeamCard(matchup, position) {
+                const card = document.createElement('div');
+                card.className = 'team-card';
+
+                // Determine trophy emoji based on position
+                let trophyHtml = '';
+                if (position === 1) {
+                    trophyHtml = '<div class="position-trophy">🥇</div>';
+                } else if (position === 2) {
+                    trophyHtml = '<div class="position-trophy">🥈</div>';
+                } else if (position === 3) {
+                    trophyHtml = '<div class="position-trophy">🥉</div>';
+                }
+
+                card.innerHTML = `
+                    <div class="team-header">
+                        ${trophyHtml}
+                        <div class="team-info">
+                            <div class="team-name">${matchup.team_name}</div>
+                            <div class="display-name">${matchup.display_name}</div>
+                        </div>
+                        <div class="points-box">
+                            <div class="points-label">Week Points</div>
+                            <div class="points-value">${matchup.total_points.toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <div class="roster-section">
+                        <div class="roster-title">Week ${this.currentWeek} Performance</div>
+                        <div class="starters">
+                            <div class="section-label">Starters</div>
+                            <div class="player-list" id="starters-${matchup.roster_id}"></div>
+                        </div>
+                        <div class="bench">
+                            <div class="section-label">Bench</div>
+                            <div class="player-list" id="bench-${matchup.roster_id}"></div>
+                        </div>
+                        <div class="scrubs">
+                            <div class="section-label">Scrubs</div>
+                            <div class="player-list" id="scrubs-${matchup.roster_id}"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Get players organized by performance
+                const playerData = this.organizePlayersByPerformance(matchup);
+
+                // Add starters
+                const startersContainer = card.querySelector(`#starters-${matchup.roster_id}`);
+                if (playerData.starters.length > 0) {
+                    playerData.starters.forEach(player => {
+                        const playerDiv = this.createPlayerElement(player, true);
+                        startersContainer.appendChild(playerDiv);
+                    });
+                } else {
+                    startersContainer.innerHTML = '<div class="player">No starters available</div>';
+                }
+
+                // Add bench players (players with points > 0 but not starters)
+                const benchContainer = card.querySelector(`#bench-${matchup.roster_id}`);
+                if (playerData.bench.length > 0) {
+                    playerData.bench.forEach(player => {
+                        const playerDiv = this.createPlayerElement(player, false);
+                        benchContainer.appendChild(playerDiv);
+                    });
+                } else {
+                    benchContainer.innerHTML = '<div class="player">No bench players with points</div>';
+                }
+
+                // Add scrubs (players with 0 points)
+                const scrubsContainer = card.querySelector(`#scrubs-${matchup.roster_id}`);
+                if (playerData.scrubs.length > 0) {
+                    playerData.scrubs.forEach(player => {
+                        const playerDiv = this.createPlayerElement(player, false);
+                        scrubsContainer.appendChild(playerDiv);
+                    });
+                } else {
+                    scrubsContainer.innerHTML = '<div class="player">No scrubs this week</div>';
+                }
+
+                return card;
+            }
+
+            organizePlayersByPerformance(matchup) {
                 // Get all players with their positions and points
-                const playersWithData = roster.players.map(playerId => {
-                    const playerInfo = this.getPlayerName(playerId);
-                    const points = this.playerPoints[playerId] || 0;
-                    return {
+                const allPlayers = [];
+                Object.entries(matchup.players_points).forEach(([playerId, points]) => {
+                    const player = this.leagueData.players[playerId];
+                    
+                    const playerData = {
                         id: playerId,
-                        position: playerInfo.position,
+                        name: player ? player.name : 'Unknown Player',
+                        position: player ? player.position : 'N/A',
+                        team: player ? player.team : 'N/A',
                         points: points,
-                        info: playerInfo
+                        wasActualStarter: matchup.starters.includes(playerId)
                     };
-                }).filter(player => player.position); // Only include players with known positions
+
+                    if (playerData.position !== 'N/A') {
+                        allPlayers.push(playerData);
+                    }
+                });
+
+                // Create optimal lineup based on points (same logic as index.html)
+                const optimalLineup = this.getOptimalLineup(allPlayers);
                 
-                // Separate players with starter points from scrubs (0 starter points)
-                const playersWithStarterPoints = playersWithData.filter(p => p.points > 0);
-                const scrubs = playersWithData.filter(p => p.points === 0);
+                return optimalLineup;
+            }
+
+            getOptimalLineup(allPlayers) {
+                // Separate players with points from scrubs (0 points)
+                const playersWithPoints = allPlayers.filter(p => p.points > 0);
+                const scrubs = allPlayers.filter(p => p.points === 0);
                 
                 // Sort by points (highest first)
-                playersWithStarterPoints.sort((a, b) => b.points - a.points);
-                scrubs.sort((a, b) => (this.totalPlayerPoints[b.id] || 0) - (this.totalPlayerPoints[a.id] || 0));
+                playersWithPoints.sort((a, b) => b.points - a.points);
+                scrubs.sort((a, b) => b.points - a.points);
                 
-                // Separate by position (only players with starter points)
-                const qbs = playersWithStarterPoints.filter(p => p.position === 'QB');
-                const rbs = playersWithStarterPoints.filter(p => p.position === 'RB');
-                const wrs = playersWithStarterPoints.filter(p => p.position === 'WR');
-                const tes = playersWithStarterPoints.filter(p => p.position === 'TE');
+                // Separate by position (only players with points)
+                const qbs = playersWithPoints.filter(p => p.position === 'QB');
+                const rbs = playersWithPoints.filter(p => p.position === 'RB');
+                const wrs = playersWithPoints.filter(p => p.position === 'WR');
+                const tes = playersWithPoints.filter(p => p.position === 'TE');
                 
                 const starters = [];
                 const used = new Set();
@@ -577,147 +654,32 @@
                 const flexCandidates = [...rbs, ...wrs, ...tes].filter(p => !used.has(p.id));
                 if (flexCandidates.length > 0) {
                     flexCandidates.sort((a, b) => b.points - a.points);
-                    starters.push({ ...flexCandidates[0], isFlex: true });
+                    starters.push({ ...flexCandidates[0], slotPosition: 'FLEX' });
                     used.add(flexCandidates[0].id);
                 }
                 
-                // Bench is everyone else with starter points
-                const bench = playersWithStarterPoints.filter(p => !used.has(p.id));
+                // Bench is everyone else with points
+                const bench = playersWithPoints.filter(p => !used.has(p.id));
                 
                 return { starters, bench, scrubs };
             }
 
-            createTeamCard(roster, position) {
-                const user = this.getUserByOwnerId(roster.owner_id);
-                const teamName = user?.metadata?.team_name || user?.display_name || 'Unknown Team';
-                
-                const wins = roster.settings?.wins || 0;
-                const losses = roster.settings?.losses || 0;
-                const ties = roster.settings?.ties || 0;
-                const points = roster.settings?.fpts || 0;
-                const pointsAgainst = roster.settings?.fpts_against || 0;
-
-                const card = document.createElement('div');
-                card.className = 'team-card';
-
-                // Determine trophy emoji based on position
-                let trophyHtml = '';
-                if (position === 1) {
-                    trophyHtml = '<div class="position-trophy">🥇</div>';
-                } else if (position === 2) {
-                    trophyHtml = '<div class="position-trophy">🥈</div>';
-                } else if (position === 3) {
-                    trophyHtml = '<div class="position-trophy">🥉</div>';
-                }
-
-                card.innerHTML = `
-                    <div class="team-header">
-                        ${trophyHtml}
-                        <div class="team-info">
-                            <div class="team-name">${teamName}</div>
-                            <div class="display-name">${user?.display_name || 'Unknown User'}</div>
-                        </div>
-                        <div class="points-box">
-                            <div class="points-label">Points For</div>
-                            <div class="points-value">${points}</div>
-                        </div>
-                    </div>
-                    <div class="roster-section">
-                        <div class="roster-title">Roster</div>
-                        <div class="starters">
-                            <div class="section-label">Beasts</div>
-                            <div class="player-list" id="starters-${roster.roster_id}"></div>
-                        </div>
-                        <div class="bench">
-                            <div class="section-label">Part Timers</div>
-                            <div class="player-list" id="bench-${roster.roster_id}"></div>
-                        </div>
-                        <div class="scrubs">
-                            <div class="section-label">Scrubs</div>
-                            <div class="player-list" id="scrubs-${roster.roster_id}"></div>
-                        </div>
-                    </div>
-                `;
-
-                // Get optimal lineup
-                const lineup = this.getOptimalLineup(roster);
-
-                // Add starters
-                const startersContainer = card.querySelector(`#starters-${roster.roster_id}`);
-                if (lineup.starters.length > 0) {
-                    lineup.starters.forEach(player => {
-                        const playerDiv = this.createPlayerElementFromData(player, true);
-                        startersContainer.appendChild(playerDiv);
-                    });
-                } else {
-                    startersContainer.innerHTML = '<div class="player">No starters available</div>';
-                }
-
-                // Add bench players
-                const benchContainer = card.querySelector(`#bench-${roster.roster_id}`);
-                if (lineup.bench.length > 0) {
-                    lineup.bench.forEach(player => {
-                        const playerDiv = this.createPlayerElementFromData(player, false);
-                        benchContainer.appendChild(playerDiv);
-                    });
-                } else {
-                    benchContainer.innerHTML = '<div class="player">No bench players</div>';
-                }
-
-                // Add scrubs (players with 0 starter points)
-                const scrubsContainer = card.querySelector(`#scrubs-${roster.roster_id}`);
-                if (lineup.scrubs.length > 0) {
-                    lineup.scrubs.forEach(player => {
-                        const playerDiv = this.createPlayerElementFromData(player, false);
-                        scrubsContainer.appendChild(playerDiv);
-                    });
-                } else {
-                    scrubsContainer.innerHTML = '<div class="player">No scrubs</div>';
-                }
-
-                return card;
-            }
-
-            createPlayerElement(playerInfo, isStarter, playerId) {
+            createPlayerElement(player, isStarter) {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
-                const position = playerInfo.position || '';
-                const teamText = playerInfo.team ? ` - ${playerInfo.team}` : '';
-                const starterPoints = this.playerPoints[playerId] || 0;
-                const totalPoints = this.totalPlayerPoints[playerId] || 0;
-                
-                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
+                // Use slotPosition if available (for FLEX), otherwise use regular position
+                const displayPosition = player.slotPosition || player.position || '';
+                const teamText = player.team ? ` - ${player.team}` : '';
+                const positionBadge = displayPosition ? `<span class="position-badge ${displayPosition}">${displayPosition}</span>` : '';
                 
                 playerDiv.innerHTML = `
                     <div class="player-info">
                         ${positionBadge}
-                        <span class="player-name">${playerInfo.displayName}</span>
+                        <span class="player-name">${player.name}</span>
                         <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${starterPoints.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
-                `;
-                
-                return playerDiv;
-            }
-
-            createPlayerElementFromData(player, isStarter) {
-                const playerDiv = document.createElement('div');
-                playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
-                
-                const position = player.isFlex ? 'FLEX' : player.position;
-                const teamText = player.info.team ? ` - ${player.info.team}` : '';
-                const totalPoints = this.totalPlayerPoints[player.id] || 0;
-                
-                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
-                
-                playerDiv.innerHTML = `
-                    <div class="player-info">
-                        ${positionBadge}
-                        <span class="player-name">${player.info.displayName}</span>
-                        <span class="player-position">${teamText}</span>
-                    </div>
-                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
+                    <span class="player-points">${player.points.toFixed(1)}</span>
                 `;
                 
                 return playerDiv;
@@ -740,10 +702,16 @@
             }
         }
 
-        // Initialize the league viewer when the page loads
+        // Initialize the weekly league viewer when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            const viewer = new LeagueViewer();
+            const viewer = new WeeklyLeagueViewer();
             viewer.loadData();
+
+            // Add week selector event listener
+            document.getElementById('week-select').addEventListener('change', function() {
+                viewer.currentWeek = parseInt(this.value);
+                viewer.displayWeekData(viewer.currentWeek);
+            });
         });
     </script>
 </body>
