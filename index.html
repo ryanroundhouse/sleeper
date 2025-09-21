@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Least Important League - Teams & Rosters</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .team-record {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .team-stats {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .stats-label {
+            color: #666;
+        }
+
+        .stats-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .roster-section {
+            padding: 20px;
+        }
+
+        .roster-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .starters, .bench {
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .player {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .player:hover {
+            background: #e9ecef;
+        }
+
+        .player.starter {
+            border-left-color: #27ae60;
+            background: #d5f4e6;
+        }
+
+        .player.starter:hover {
+            background: #c3f0d9;
+        }
+
+        .player-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .player-position {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .teams-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="league-name">Loading League...</h1>
+            <p id="league-info">Fetching league information...</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            <p>Loading teams and rosters...</p>
+        </div>
+        
+        <div id="teams-container" class="teams-grid" style="display: none;"></div>
+        
+        <div id="error" class="error" style="display: none;">
+            <p>Error loading league data. Please make sure all JSON files (including nfl_players.json) are in the same directory.</p>
+        </div>
+    </div>
+
+    <script>
+        class LeagueViewer {
+            constructor() {
+                this.players = {};
+                this.leagueInfo = {};
+                this.users = [];
+                this.rosters = [];
+            }
+
+            async loadData() {
+                try {
+                    // Load all required data from local JSON files
+                    const [playersResponse, leagueResponse, usersResponse, rostersResponse] = await Promise.all([
+                        fetch('nfl_players.json'),
+                        fetch('league_1264686617134628864_info.json'),
+                        fetch('league_1264686617134628864_users.json'),
+                        fetch('league_1264686617134628864_rosters.json')
+                    ]);
+
+                    if (!playersResponse.ok || !leagueResponse.ok || !usersResponse.ok || !rostersResponse.ok) {
+                        throw new Error('Failed to load local JSON files');
+                    }
+
+                    this.players = await playersResponse.json();
+                    this.leagueInfo = await leagueResponse.json();
+                    this.users = await usersResponse.json();
+                    this.rosters = await rostersResponse.json();
+
+                    this.displayLeague();
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.showError();
+                }
+            }
+
+            getPlayerName(playerId) {
+                if (!playerId) return 'Unknown Player';
+                
+                const player = this.players[playerId];
+                if (player) {
+                    const position = player.position || '';
+                    const team = player.team || '';
+                    return {
+                        name: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player',
+                        position: position,
+                        team: team,
+                        displayName: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player'
+                    };
+                }
+                return {
+                    name: `Player ${playerId}`,
+                    position: '',
+                    team: '',
+                    displayName: `Player ${playerId}`
+                };
+            }
+
+            getUserByOwnerId(ownerId) {
+                return this.users.find(user => user.user_id === ownerId);
+            }
+
+            displayLeague() {
+                // Update header
+                document.getElementById('league-name').textContent = this.leagueInfo.name || 'Fantasy League';
+                document.getElementById('league-info').textContent = 
+                    `${this.leagueInfo.season || ''} Season • ${this.leagueInfo.total_rosters || 0} Teams • Status: ${this.leagueInfo.status || 'Unknown'}`;
+
+                // Hide loading, show teams
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('teams-container').style.display = 'grid';
+
+                const container = document.getElementById('teams-container');
+                container.innerHTML = '';
+
+                // Sort rosters by wins, then by points
+                const sortedRosters = [...this.rosters].sort((a, b) => {
+                    const aWins = a.settings?.wins || 0;
+                    const bWins = b.settings?.wins || 0;
+                    if (aWins !== bWins) return bWins - aWins;
+                    
+                    const aPoints = a.settings?.fpts || 0;
+                    const bPoints = b.settings?.fpts || 0;
+                    return bPoints - aPoints;
+                });
+
+                sortedRosters.forEach(roster => {
+                    const teamCard = this.createTeamCard(roster);
+                    container.appendChild(teamCard);
+                });
+            }
+
+            createTeamCard(roster) {
+                const user = this.getUserByOwnerId(roster.owner_id);
+                const teamName = user?.metadata?.team_name || user?.display_name || 'Unknown Team';
+                
+                const wins = roster.settings?.wins || 0;
+                const losses = roster.settings?.losses || 0;
+                const ties = roster.settings?.ties || 0;
+                const points = roster.settings?.fpts || 0;
+                const pointsAgainst = roster.settings?.fpts_against || 0;
+
+                const card = document.createElement('div');
+                card.className = 'team-card';
+
+                card.innerHTML = `
+                    <div class="team-header">
+                        <div class="team-name">${teamName}</div>
+                        <div class="team-record">${wins}-${losses}-${ties}</div>
+                    </div>
+                    <div class="team-stats">
+                        <div class="stats-row">
+                            <span class="stats-label">Points For:</span>
+                            <span class="stats-value">${points}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Points Against:</span>
+                            <span class="stats-value">${pointsAgainst}</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stats-label">Waiver Position:</span>
+                            <span class="stats-value">${roster.settings?.waiver_position || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <div class="roster-section">
+                        <div class="roster-title">Roster</div>
+                        <div class="starters">
+                            <div class="section-label">Starters</div>
+                            <div class="player-list" id="starters-${roster.roster_id}"></div>
+                        </div>
+                        <div class="bench">
+                            <div class="section-label">Bench</div>
+                            <div class="player-list" id="bench-${roster.roster_id}"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Add starters
+                const startersContainer = card.querySelector(`#starters-${roster.roster_id}`);
+                if (roster.starters && roster.starters.length > 0) {
+                    roster.starters.forEach(playerId => {
+                        if (playerId) {
+                            const playerInfo = this.getPlayerName(playerId);
+                            const playerDiv = this.createPlayerElement(playerInfo, true);
+                            startersContainer.appendChild(playerDiv);
+                        }
+                    });
+                } else {
+                    startersContainer.innerHTML = '<div class="player">No starters set</div>';
+                }
+
+                // Add bench players
+                const benchContainer = card.querySelector(`#bench-${roster.roster_id}`);
+                const benchPlayers = roster.players?.filter(playerId => 
+                    !roster.starters?.includes(playerId)
+                ) || [];
+
+                if (benchPlayers.length > 0) {
+                    benchPlayers.forEach(playerId => {
+                        if (playerId) {
+                            const playerInfo = this.getPlayerName(playerId);
+                            const playerDiv = this.createPlayerElement(playerInfo, false);
+                            benchContainer.appendChild(playerDiv);
+                        }
+                    });
+                } else {
+                    benchContainer.innerHTML = '<div class="player">No bench players</div>';
+                }
+
+                return card;
+            }
+
+            createPlayerElement(playerInfo, isStarter) {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
+                
+                const positionText = playerInfo.position ? ` (${playerInfo.position}${playerInfo.team ? ' - ' + playerInfo.team : ''})` : '';
+                playerDiv.innerHTML = `
+                    <span class="player-name">${playerInfo.displayName}</span>
+                    <span class="player-position">${positionText}</span>
+                `;
+                
+                return playerDiv;
+            }
+
+            showError() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        // Initialize the league viewer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewer = new LeagueViewer();
+            viewer.loadData();
+        });
+    </script>
+</body>
+</html>
