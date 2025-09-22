@@ -56,6 +56,31 @@ log "INFO" "League ID: $LEAGUE_ID"
 # Change to script directory
 cd "$SCRIPT_DIR"
 
+# Source environment variables for cron (cron doesn't load .bashrc by default)
+if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+    log "INFO" "Sourced ~/.bashrc for environment variables"
+fi
+
+# Also try .bash_profile if .bashrc didn't work
+if [ -z "$SLEEPER_GITHUB_TOKEN" ] && [ -f "$HOME/.bash_profile" ]; then
+    source "$HOME/.bash_profile"
+    log "INFO" "Sourced ~/.bash_profile for environment variables"
+fi
+
+# Debug: Log environment variable status
+if [ -n "$SLEEPER_GITHUB_TOKEN" ]; then
+    log "INFO" "SLEEPER_GITHUB_TOKEN is set (length: ${#SLEEPER_GITHUB_TOKEN})"
+else
+    log "WARNING" "SLEEPER_GITHUB_TOKEN is not set after sourcing shell profiles"
+fi
+
+if [ -n "$SLEEPER_LEAGUE_ID" ]; then
+    log "INFO" "SLEEPER_LEAGUE_ID is set: $SLEEPER_LEAGUE_ID"
+else
+    log "INFO" "SLEEPER_LEAGUE_ID not set, using default: $LEAGUE_ID"
+fi
+
 # Setup GitHub authentication using Personal Access Token
 setup_git_auth() {
     if [ -n "$SLEEPER_GITHUB_TOKEN" ]; then
