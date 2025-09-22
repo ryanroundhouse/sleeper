@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Least Important League - Hall of Fame</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .navigation {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .nav-button.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .nav-button:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title.hall-of-fame {
+            color: #f39c12;
+        }
+
+        .section-title.closet-of-shame {
+            color: #e74c3c;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .player-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .player-header {
+            color: white;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .player-header.hall-of-fame {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .player-header.closet-of-shame {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .player-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .team-name {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .display-name {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+
+        .player-info {
+            text-align: center;
+            flex: 1;
+        }
+
+        .medals-box {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .medals-label {
+            font-size: 0.7rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .medals-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            font-size: 1.2rem;
+        }
+
+        .poo-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            font-size: 1.1rem;
+        }
+
+        .position-trophy {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .weeks-section {
+            padding: 20px;
+        }
+
+        .weeks-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .weeks-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .week-badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .week-badge.hall-of-fame {
+            background: #f39c12;
+        }
+
+        .week-badge.closet-of-shame {
+            background: #e74c3c;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #e74c3c;
+            font-size: 1.1rem;
+        }
+
+        .empty-section {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .navigation {
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 100%;
+                text-align: center;
+            }
+
+            .section {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="league-name">Loading League...</h1>
+            <p id="league-info">Fetching league information...</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <button class="nav-button" onclick="window.location.href='index.html'">Season Results</button>
+                <button class="nav-button" onclick="window.location.href='weekly.html'">Weekly Results</button>
+                <button class="nav-button" onclick="window.location.href='stats.html'">Stats</button>
+                <button class="nav-button active">Hall of Fame</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <p>Loading Hall of Fame data...</p>
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div class="section">
+                <h2 class="section-title hall-of-fame">🏆 Hall of Fame 🏆</h2>
+                <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px; font-style: italic;">
+                    Champions who have dominated weekly matchups
+                </p>
+                <div id="hall-of-fame-container" class="players-grid"></div>
+            </div>
+            
+            <div class="section" style="background: #f8f9fa;">
+                <h2 class="section-title closet-of-shame">💩 Closet of Shame 💩</h2>
+                <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px; font-style: italic;">
+                    Those who have experienced the agony of weekly defeat
+                </p>
+                <div id="closet-of-shame-container" class="players-grid"></div>
+            </div>
+        </div>
+        
+        <div id="error" class="error" style="display: none;">
+            <p>Error loading league data. Please make sure you've run the Python script first and all JSON files are in the same directory.</p>
+        </div>
+    </div>
+
+    <script>
+        class HallOfFameViewer {
+            constructor() {
+                this.leagueData = null;
+                this.hallOfFameData = [];
+                this.closetOfShameData = [];
+            }
+
+            async loadData() {
+                try {
+                    const response = await fetch('web_interface_data.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    this.leagueData = await response.json();
+                    
+                    // Update header
+                    document.getElementById('league-name').textContent = this.leagueData.league_info.name;
+                    document.getElementById('league-info').textContent = 
+                        `Season ${this.leagueData.league_info.season} • ${this.leagueData.league_info.total_rosters} Teams • Current Week: ${this.leagueData.league_info.current_week}`;
+                    
+                    // Analyze weekly performance
+                    this.analyzeWeeklyPerformance();
+                    
+                    // Display the results
+                    this.displayResults();
+                    
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.showError();
+                }
+            }
+
+            analyzeWeeklyPerformance() {
+                const playerStats = {};
+
+                // Initialize player stats
+                this.leagueData.weeks.forEach(weekData => {
+                    weekData.matchups.forEach(matchup => {
+                        const playerId = `${matchup.roster_id}`;
+                        if (!playerStats[playerId]) {
+                            playerStats[playerId] = {
+                                roster_id: matchup.roster_id,
+                                team_name: matchup.team_name,
+                                display_name: matchup.display_name,
+                                firstPlaceWeeks: [],
+                                secondPlaceWeeks: [],
+                                thirdPlaceWeeks: [],
+                                lastPlaceWeeks: [],
+                                firstPlaceCount: 0,
+                                secondPlaceCount: 0,
+                                thirdPlaceCount: 0,
+                                lastPlaceCount: 0
+                            };
+                        }
+                    });
+                });
+
+                // Analyze each week
+                this.leagueData.weeks.forEach(weekData => {
+                    // Calculate optimal points for each team in this week
+                    const weeklyScores = weekData.matchups.map(matchup => {
+                        const playerData = this.organizePlayersByPerformance(matchup);
+                        const optimalPoints = playerData.starters.reduce((sum, player) => sum + player.points, 0);
+                        return {
+                            roster_id: matchup.roster_id,
+                            team_name: matchup.team_name,
+                            display_name: matchup.display_name,
+                            optimalPoints: optimalPoints,
+                            week: weekData.week
+                        };
+                    });
+
+                    // Sort by optimal points (highest first)
+                    weeklyScores.sort((a, b) => b.optimalPoints - a.optimalPoints);
+
+                    // Track 1st, 2nd, 3rd, and last place
+                    if (weeklyScores.length > 0) {
+                        // First place
+                        const firstPlace = weeklyScores[0];
+                        const firstPlayerId = `${firstPlace.roster_id}`;
+                        playerStats[firstPlayerId].firstPlaceWeeks.push(weekData.week);
+                        playerStats[firstPlayerId].firstPlaceCount++;
+                        
+                        // Second place
+                        if (weeklyScores.length > 1) {
+                            const secondPlace = weeklyScores[1];
+                            const secondPlayerId = `${secondPlace.roster_id}`;
+                            playerStats[secondPlayerId].secondPlaceWeeks.push(weekData.week);
+                            playerStats[secondPlayerId].secondPlaceCount++;
+                        }
+                        
+                        // Third place
+                        if (weeklyScores.length > 2) {
+                            const thirdPlace = weeklyScores[2];
+                            const thirdPlayerId = `${thirdPlace.roster_id}`;
+                            playerStats[thirdPlayerId].thirdPlaceWeeks.push(weekData.week);
+                            playerStats[thirdPlayerId].thirdPlaceCount++;
+                        }
+                        
+                        // Last place
+                        const lastPlace = weeklyScores[weeklyScores.length - 1];
+                        const lastPlayerId = `${lastPlace.roster_id}`;
+                        playerStats[lastPlayerId].lastPlaceWeeks.push(weekData.week);
+                        playerStats[lastPlayerId].lastPlaceCount++;
+                    }
+                });
+
+                // Create Hall of Fame (include anyone with any medals: 1st, 2nd, or 3rd place)
+                this.hallOfFameData = Object.values(playerStats)
+                    .filter(player => player.firstPlaceCount > 0 || player.secondPlaceCount > 0 || player.thirdPlaceCount > 0)
+                    .sort((a, b) => {
+                        if (b.firstPlaceCount !== a.firstPlaceCount) {
+                            return b.firstPlaceCount - a.firstPlaceCount;
+                        }
+                        if (b.secondPlaceCount !== a.secondPlaceCount) {
+                            return b.secondPlaceCount - a.secondPlaceCount;
+                        }
+                        if (b.thirdPlaceCount !== a.thirdPlaceCount) {
+                            return b.thirdPlaceCount - a.thirdPlaceCount;
+                        }
+                        return a.team_name.localeCompare(b.team_name);
+                    });
+
+                // Create Closet of Shame (sorted by last place finishes, then alphabetically)
+                this.closetOfShameData = Object.values(playerStats)
+                    .filter(player => player.lastPlaceCount > 0)
+                    .sort((a, b) => {
+                        if (b.lastPlaceCount !== a.lastPlaceCount) {
+                            return b.lastPlaceCount - a.lastPlaceCount;
+                        }
+                        return a.team_name.localeCompare(b.team_name);
+                    });
+            }
+
+            organizePlayersByPerformance(matchup) {
+                // Get all players with their positions and points
+                const allPlayers = [];
+                Object.entries(matchup.players_points).forEach(([playerId, points]) => {
+                    const player = this.leagueData.players[playerId];
+                    
+                    const playerData = {
+                        id: playerId,
+                        name: player ? player.name : 'Unknown Player',
+                        position: player ? player.position : 'N/A',
+                        team: player ? player.team : 'N/A',
+                        points: points,
+                        wasActualStarter: matchup.starters.includes(playerId)
+                    };
+
+                    if (playerData.position !== 'N/A') {
+                        allPlayers.push(playerData);
+                    }
+                });
+
+                // Create optimal lineup based on points (same logic as weekly.html)
+                const optimalLineup = this.getOptimalLineup(allPlayers);
+                
+                return optimalLineup;
+            }
+
+            getOptimalLineup(allPlayers) {
+                // Separate players with points from scrubs (0 points)
+                const playersWithPoints = allPlayers.filter(p => p.points > 0);
+                const scrubs = allPlayers.filter(p => p.points === 0);
+                
+                // Sort by points (highest first)
+                playersWithPoints.sort((a, b) => b.points - a.points);
+                scrubs.sort((a, b) => b.points - a.points);
+                
+                // Separate by position (only players with points)
+                const qbs = playersWithPoints.filter(p => p.position === 'QB');
+                const rbs = playersWithPoints.filter(p => p.position === 'RB');
+                const wrs = playersWithPoints.filter(p => p.position === 'WR');
+                const tes = playersWithPoints.filter(p => p.position === 'TE');
+                
+                const starters = [];
+                const used = new Set();
+                
+                // 1 QB (highest scoring)
+                if (qbs.length > 0) {
+                    starters.push(qbs[0]);
+                    used.add(qbs[0].id);
+                }
+                
+                // 2 RBs (highest scoring)
+                for (let i = 0; i < Math.min(2, rbs.length); i++) {
+                    starters.push(rbs[i]);
+                    used.add(rbs[i].id);
+                }
+                
+                // 3 WRs (highest scoring)
+                for (let i = 0; i < Math.min(3, wrs.length); i++) {
+                    starters.push(wrs[i]);
+                    used.add(wrs[i].id);
+                }
+                
+                // 1 TE (highest scoring)
+                if (tes.length > 0) {
+                    starters.push(tes[0]);
+                    used.add(tes[0].id);
+                }
+                
+                // 1 FLEX (next highest WR, RB, or TE not already used)
+                const flexCandidates = [...rbs, ...wrs, ...tes].filter(p => !used.has(p.id));
+                if (flexCandidates.length > 0) {
+                    flexCandidates.sort((a, b) => b.points - a.points);
+                    starters.push({ ...flexCandidates[0], slotPosition: 'FLEX' });
+                    used.add(flexCandidates[0].id);
+                }
+                
+                // Bench is everyone else with points
+                const bench = playersWithPoints.filter(p => !used.has(p.id));
+                
+                return { starters, bench, scrubs };
+            }
+
+            displayResults() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+
+                this.displayHallOfFame();
+                this.displayClosetOfShame();
+            }
+
+            displayHallOfFame() {
+                const container = document.getElementById('hall-of-fame-container');
+                container.innerHTML = '';
+
+                if (this.hallOfFameData.length === 0) {
+                    container.innerHTML = '<div class="empty-section">No champions yet... the season is still young!</div>';
+                    return;
+                }
+
+                this.hallOfFameData.forEach((player, index) => {
+                    const playerCard = this.createPlayerCard(player, index + 1, 'hall-of-fame');
+                    container.appendChild(playerCard);
+                });
+            }
+
+            displayClosetOfShame() {
+                const container = document.getElementById('closet-of-shame-container');
+                container.innerHTML = '';
+
+                if (this.closetOfShameData.length === 0) {
+                    container.innerHTML = '<div class="empty-section">Everyone\'s doing great... no shame here!</div>';
+                    return;
+                }
+
+                this.closetOfShameData.forEach((player, index) => {
+                    const playerCard = this.createPlayerCard(player, index + 1, 'closet-of-shame');
+                    container.appendChild(playerCard);
+                });
+            }
+
+            createPlayerCard(player, position, type) {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+
+                // Determine trophy emoji based on position
+                let trophyHtml = '';
+                if (position === 1) {
+                    trophyHtml = '<div class="position-trophy">🥇</div>';
+                } else if (position === 2) {
+                    trophyHtml = '<div class="position-trophy">🥈</div>';
+                } else if (position === 3) {
+                    trophyHtml = '<div class="position-trophy">🥉</div>';
+                }
+
+                // Create medals or poo display
+                let displayContent = '';
+                if (type === 'hall-of-fame') {
+                    displayContent = `
+                        <div class="medals-box">
+                            <div class="medals-label">Medals</div>
+                            <div class="medals-display" id="medals-${player.roster_id}"></div>
+                        </div>
+                    `;
+                } else {
+                    displayContent = `
+                        <div class="medals-box">
+                            <div class="medals-label">Shame</div>
+                            <div class="poo-display" id="poo-${player.roster_id}"></div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="player-header ${type}">
+                        ${trophyHtml}
+                        <div class="player-info">
+                            <div class="player-name">${player.team_name}</div>
+                            <div class="display-name">${player.display_name}</div>
+                        </div>
+                        ${displayContent}
+                    </div>
+                    <div class="weeks-section">
+                        <div class="weeks-title">Weeks</div>
+                        <div class="weeks-list" id="weeks-${player.roster_id}-${type}"></div>
+                    </div>
+                `;
+
+                // Add medals or poo emojis
+                if (type === 'hall-of-fame') {
+                    const medalsContainer = card.querySelector(`#medals-${player.roster_id}`);
+                    
+                    // Add gold medals (🥇)
+                    for (let i = 0; i < player.firstPlaceCount; i++) {
+                        const medal = document.createElement('span');
+                        medal.textContent = '🥇';
+                        medal.title = `1st place finish`;
+                        medalsContainer.appendChild(medal);
+                    }
+                    
+                    // Add silver medals (🥈)
+                    for (let i = 0; i < player.secondPlaceCount; i++) {
+                        const medal = document.createElement('span');
+                        medal.textContent = '🥈';
+                        medal.title = `2nd place finish`;
+                        medalsContainer.appendChild(medal);
+                    }
+                    
+                    // Add bronze medals (🥉)
+                    for (let i = 0; i < player.thirdPlaceCount; i++) {
+                        const medal = document.createElement('span');
+                        medal.textContent = '🥉';
+                        medal.title = `3rd place finish`;
+                        medalsContainer.appendChild(medal);
+                    }
+                } else {
+                    const pooContainer = card.querySelector(`#poo-${player.roster_id}`);
+                    
+                    // Add poo emojis for last place finishes
+                    for (let i = 0; i < player.lastPlaceCount; i++) {
+                        const poo = document.createElement('span');
+                        poo.textContent = '💩';
+                        poo.title = `Last place finish`;
+                        pooContainer.appendChild(poo);
+                    }
+                }
+
+                // Add week badges (combine all relevant weeks for hall of fame)
+                const weeksContainer = card.querySelector(`#weeks-${player.roster_id}-${type}`);
+                let allWeeks = [];
+                
+                if (type === 'hall-of-fame') {
+                    // Combine all medal weeks
+                    const firstPlaceWeeks = player.firstPlaceWeeks.map(w => ({ week: w, place: '1st' }));
+                    const secondPlaceWeeks = player.secondPlaceWeeks.map(w => ({ week: w, place: '2nd' }));
+                    const thirdPlaceWeeks = player.thirdPlaceWeeks.map(w => ({ week: w, place: '3rd' }));
+                    allWeeks = [...firstPlaceWeeks, ...secondPlaceWeeks, ...thirdPlaceWeeks];
+                    allWeeks.sort((a, b) => a.week - b.week);
+                } else {
+                    allWeeks = player.lastPlaceWeeks.map(w => ({ week: w, place: 'Last' }));
+                }
+
+                allWeeks.forEach(weekInfo => {
+                    const weekBadge = document.createElement('div');
+                    weekBadge.className = `week-badge ${type}`;
+                    weekBadge.textContent = `Week ${weekInfo.week} (${weekInfo.place})`;
+                    weeksContainer.appendChild(weekBadge);
+                });
+
+                return card;
+            }
+
+            showError() {
+                document.getElementById('loading').style.display = 'none';
+                const errorDiv = document.getElementById('error');
+                errorDiv.innerHTML = `
+                    <h3>Failed to load league data</h3>
+                    <p><strong>Possible solutions:</strong></p>
+                    <ul style="text-align: left; display: inline-block; margin: 20px 0;">
+                        <li>Make sure you've run the Python script first: <code>python sleeper_league_data.py [league_id]</code></li>
+                        <li>Check that all JSON files exist in the same directory</li>
+                        <li>If serving locally, use: <code>python3 -m http.server 8080</code></li>
+                        <li>Make sure you're accessing via HTTP (not file://) to avoid CORS issues</li>
+                    </ul>
+                `;
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Initialize the Hall of Fame viewer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewer = new HallOfFameViewer();
+            viewer.loadData();
+        });
+    </script>
+</body>
+</html>
