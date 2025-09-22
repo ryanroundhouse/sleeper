@@ -83,6 +83,16 @@ else
     echo "✅ SLEEPER_GITHUB_TOKEN found in environment"
 fi
 
+# Configure Git if not already configured
+echo "🔧 Configuring Git..."
+if ! git config user.name >/dev/null 2>&1; then
+    git config user.name "Sleeper League Bot"
+    git config user.email "sleeper-bot@noreply.github.com"
+    echo "✅ Git user configuration set"
+else
+    echo "ℹ️  Git user already configured: $(git config user.name)"
+fi
+
 # Test the update script
 echo "🧪 Testing the update script..."
 if "$SCRIPT_DIR/update_league_data.sh"; then
