@@ -97,8 +97,20 @@ if ! $PYTHON_CMD -c "import requests" 2>/dev/null; then
     }
 fi
 
+# Setup Git configuration
+setup_git_config() {
+    # Check if git user is configured
+    if ! git config user.name >/dev/null 2>&1; then
+        log "INFO" "Setting up Git user configuration..."
+        git config user.name "Sleeper League Bot"
+        git config user.email "sleeper-bot@noreply.github.com"
+        log "SUCCESS" "Git user configuration set"
+    fi
+}
+
 # Setup Git authentication
 setup_git_auth
+setup_git_config
 
 # Store current git status
 INITIAL_STATUS=$(git status --porcelain)
