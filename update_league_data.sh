@@ -8,7 +8,8 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/update_league_data.log"
 LEAGUE_ID="${SLEEPER_LEAGUE_ID:-1264686617134628864}"  # Default to your league ID
-PYTHON_CMD="python3"
+VENV_PATH="$SCRIPT_DIR/venv"
+PYTHON_CMD="$VENV_PATH/bin/python3"
 
 # GitHub authentication using Personal Access Token
 # Set SLEEPER_GITHUB_TOKEN environment variable with your GitHub Personal Access Token
@@ -81,17 +82,24 @@ if [ ! -f "sleeper_league_data.py" ]; then
     exit 1
 fi
 
-# Check if Python is available
-if ! command -v $PYTHON_CMD &> /dev/null; then
-    log "ERROR" "Python3 not found. Please install Python3 or update PYTHON_CMD variable."
+# Check if virtual environment exists
+if [ ! -d "$VENV_PATH" ]; then
+    log "ERROR" "Virtual environment not found at $VENV_PATH"
+    log "ERROR" "Please run setup_cron.sh first to create the virtual environment"
+    exit 1
+fi
+
+# Check if Python is available in virtual environment
+if [ ! -f "$PYTHON_CMD" ]; then
+    log "ERROR" "Python not found in virtual environment: $PYTHON_CMD"
     exit 1
 fi
 
 # Check if required Python packages are available
-log "INFO" "Checking Python dependencies..."
+log "INFO" "Checking Python dependencies in virtual environment..."
 if ! $PYTHON_CMD -c "import requests" 2>/dev/null; then
     log "WARNING" "requests package not found. Attempting to install..."
-    $PYTHON_CMD -m pip install requests || {
+    "$VENV_PATH/bin/pip" install requests || {
         log "ERROR" "Failed to install requests package"
         exit 1
     }
@@ -151,7 +159,7 @@ git add --all
 # Get current week from NFL state if available
 CURRENT_WEEK=""
 if [ -f "nfl_state.json" ]; then
-    CURRENT_WEEK=$(python3 -c "
+    CURRENT_WEEK=$($PYTHON_CMD -c "
 import json
 try:
     with open('nfl_state.json', 'r') as f:
