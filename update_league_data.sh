@@ -112,6 +112,15 @@ setup_git_config() {
 setup_git_auth
 setup_git_config
 
+# Pull latest changes from GitHub first
+log "INFO" "Pulling latest changes from GitHub..."
+if git pull origin main >> "$LOG_FILE" 2>&1; then
+    log "SUCCESS" "Successfully pulled latest changes"
+else
+    log "WARNING" "Failed to pull latest changes, continuing with current version"
+    # Don't exit here as we might be offline or have conflicts, but we can still update data
+fi
+
 # Store current git status
 INITIAL_STATUS=$(git status --porcelain)
 
