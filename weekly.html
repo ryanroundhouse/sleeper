@@ -492,8 +492,14 @@
                 const container = document.getElementById('teams-container');
                 container.innerHTML = '';
 
-                // Sort teams by total points (descending)
-                const sortedMatchups = weekData.matchups.sort((a, b) => b.total_points - a.total_points);
+                // Calculate optimal points for each team and sort by those points (descending)
+                const matchupsWithOptimalPoints = weekData.matchups.map(matchup => {
+                    const playerData = this.organizePlayersByPerformance(matchup);
+                    const optimalPoints = playerData.starters.reduce((sum, player) => sum + player.points, 0);
+                    return { ...matchup, optimalPoints };
+                });
+
+                const sortedMatchups = matchupsWithOptimalPoints.sort((a, b) => b.optimalPoints - a.optimalPoints);
 
                 sortedMatchups.forEach((matchup, index) => {
                     const teamCard = this.createTeamCard(matchup, index + 1);
@@ -504,6 +510,10 @@
             createTeamCard(matchup, position) {
                 const card = document.createElement('div');
                 card.className = 'team-card';
+
+                // Get optimal lineup and calculate total points from starters
+                const optimalPlayerData = this.organizePlayersByPerformance(matchup);
+                const optimalPoints = optimalPlayerData.starters.reduce((sum, player) => sum + player.points, 0);
 
                 // Determine trophy emoji based on position
                 let trophyHtml = '';
@@ -524,7 +534,7 @@
                         </div>
                         <div class="points-box">
                             <div class="points-label">Week Points</div>
-                            <div class="points-value">${matchup.total_points.toFixed(1)}</div>
+                            <div class="points-value">${optimalPoints.toFixed(1)}</div>
                         </div>
                     </div>
                     <div class="roster-section">

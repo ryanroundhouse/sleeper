@@ -124,11 +124,15 @@ def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players
             roster_id = matchup.get('roster_id')
             team_info = roster_to_user.get(roster_id, {'display_name': 'Unknown', 'team_name': 'Unknown'})
             
+            # Calculate total points from starters only
+            starters_points = matchup.get('starters_points', [])
+            total_starters_points = sum(starters_points) if starters_points else 0
+            
             matchup_data = {
                 'roster_id': roster_id,
                 'team_name': team_info['team_name'],
                 'display_name': team_info['display_name'],
-                'total_points': matchup.get('points', 0),
+                'total_points': total_starters_points,
                 'starters': matchup.get('starters', []),
                 'starters_points': matchup.get('starters_points', []),
                 'players_points': matchup.get('players_points', {}),
