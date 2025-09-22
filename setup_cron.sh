@@ -103,20 +103,30 @@ else
     exit 1
 fi
 
-# Set up cron job
-echo "⏰ Setting up cron job..."
+# Set up cron jobs
+echo "⏰ Setting up cron jobs..."
 
-# Create cron job entry
-CRON_JOB="0 */6 * * * $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1"
+# Create cron job entries for specific times
+CRON_JOBS=(
+    "0 23 * * 1 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Monday 11pm"
+    "0 16 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 4pm"
+    "0 20 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 8pm"
+    "0 23 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 11pm"
+    "0 23 * * 4 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Thursday 11pm"
+)
 
-# Check if cron job already exists
-if crontab -l 2>/dev/null | grep -q "update_league_data.sh"; then
-    echo "ℹ️  Cron job already exists"
-else
-    # Add cron job
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
-    echo "✅ Cron job added successfully!"
-fi
+# Remove any existing cron jobs for this script
+echo "🧹 Removing any existing cron jobs for update_league_data.sh..."
+crontab -l 2>/dev/null | grep -v "update_league_data.sh" | crontab -
+
+# Add new cron jobs
+echo "📅 Adding new cron schedule..."
+CURRENT_CRONTAB=$(crontab -l 2>/dev/null)
+for job in "${CRON_JOBS[@]}"; do
+    CURRENT_CRONTAB="$CURRENT_CRONTAB"$'\n'"$job"
+done
+echo "$CURRENT_CRONTAB" | crontab -
+echo "✅ Cron jobs added successfully!"
 
 echo ""
 echo "🎉 Setup Complete!"
@@ -125,19 +135,19 @@ echo ""
 echo "📋 Summary:"
 echo "  • Update script: $SCRIPT_DIR/update_league_data.sh"
 echo "  • Log file: $SCRIPT_DIR/update_league_data.log"
-echo "  • Cron schedule: Every 6 hours"
 echo "  • Website: https://ryanroundhouse.github.io/sleeper/"
+echo ""
+echo "📅 Cron Schedule (Fantasy Football Optimized):"
+echo "  • Monday 11:00 PM    - Post-MNF update"
+echo "  • Sunday 4:00 PM     - Early games complete"
+echo "  • Sunday 8:00 PM     - Late games complete"
+echo "  • Sunday 11:00 PM    - SNF/final update"
+echo "  • Thursday 11:00 PM  - Post-TNF update"
 echo ""
 echo "🔧 Manual Commands:"
 echo "  • Run update now: $SCRIPT_DIR/update_league_data.sh"
 echo "  • View logs: tail -f $SCRIPT_DIR/update_league_data.log"
 echo "  • Edit cron: crontab -e"
 echo "  • View cron: crontab -l"
-echo ""
-echo "⏰ Cron Schedule Options:"
-echo "  • Every 6 hours: 0 */6 * * *"
-echo "  • Daily at 6 AM: 0 6 * * *"
-echo "  • Twice daily: 0 6,18 * * *"
-echo "  • Every hour: 0 * * * *"
 echo ""
 echo "🚀 Your fantasy league data will now update automatically!"
