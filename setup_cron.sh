@@ -35,13 +35,30 @@ fi
 chmod +x "$SCRIPT_DIR/update_league_data.sh"
 echo "✅ Made update_league_data.sh executable"
 
-# Install Python dependencies
-echo "📦 Installing Python dependencies..."
-python3 -m pip install --user requests || {
+# Setup Python virtual environment and install dependencies
+echo "📦 Setting up Python virtual environment..."
+VENV_PATH="$SCRIPT_DIR/venv"
+
+# Create virtual environment if it doesn't exist
+if [ ! -d "$VENV_PATH" ]; then
+    echo "🔧 Creating virtual environment at $VENV_PATH..."
+    python3 -m venv "$VENV_PATH" || {
+        echo "❌ Failed to create virtual environment"
+        echo "💡 Make sure python3-venv is installed: sudo apt install python3-venv"
+        exit 1
+    }
+    echo "✅ Virtual environment created"
+else
+    echo "ℹ️  Virtual environment already exists"
+fi
+
+# Install Python dependencies in virtual environment
+echo "📦 Installing Python dependencies in virtual environment..."
+"$VENV_PATH/bin/pip" install requests || {
     echo "❌ Failed to install Python requests package"
     exit 1
 }
-echo "✅ Python dependencies installed"
+echo "✅ Python dependencies installed in virtual environment"
 
 # Set up environment variables
 LEAGUE_ID="1264686617134628864"
@@ -134,6 +151,7 @@ echo "=================="
 echo ""
 echo "📋 Summary:"
 echo "  • Update script: $SCRIPT_DIR/update_league_data.sh"
+echo "  • Virtual environment: $VENV_PATH"
 echo "  • Log file: $SCRIPT_DIR/update_league_data.log"
 echo "  • Website: https://ryanroundhouse.github.io/sleeper/"
 echo ""
