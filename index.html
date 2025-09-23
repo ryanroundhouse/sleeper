@@ -272,6 +272,21 @@
             opacity: 0.9;
         }
 
+        .unrostered-team {
+            border: 3px solid #e67e22;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .unrostered-team .team-header {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .unrostered-team .position-trophy {
+            background: rgba(255, 255, 255, 0.9);
+            color: #e67e22;
+            font-size: 1.2rem;
+        }
+
         .position-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -402,6 +417,7 @@
                 this.users = [];
                 this.rosters = [];
                 this.playerPoints = {};
+                this.unrosteredPlayers = null;
             }
 
             async loadData() {
@@ -424,6 +440,16 @@
                     this.users = await usersResponse.json();
                     this.rosters = await rostersResponse.json();
                     const webData = await webDataResponse.json();
+                    
+                    // Try to load unrostered players season data
+                    try {
+                        const unrosteredResponse = await fetch(`league_${this.leagueInfo.league_id}_unrostered_season_stats.json`);
+                        if (unrosteredResponse.ok) {
+                            this.unrosteredPlayers = await unrosteredResponse.json();
+                        }
+                    } catch (error) {
+                        console.log('Unrostered players season data not available:', error);
+                    }
                     
                     this.calculatePlayerPoints(webData);
                     this.displayLeague();
@@ -506,15 +532,41 @@
                 const container = document.getElementById('teams-container');
                 container.innerHTML = '';
 
-                // Sort rosters by total points (highest first)
-                const sortedRosters = [...this.rosters].sort((a, b) => {
-                    const aPoints = a.settings?.fpts || 0;
-                    const bPoints = b.settings?.fpts || 0;
-                    return bPoints - aPoints;
+                // Create array of all teams (regular + unrostered)
+                const allTeams = [];
+                
+                // Add regular teams
+                this.rosters.forEach(roster => {
+                    allTeams.push({
+                        type: 'regular',
+                        roster: roster,
+                        points: roster.settings?.fpts || 0
+                    });
                 });
 
-                sortedRosters.forEach((roster, index) => {
-                    const teamCard = this.createTeamCard(roster, index + 1);
+                // Add unrostered team if data is available
+                if (this.unrosteredPlayers) {
+                    const unrosteredLineup = this.getOptimalUnrosteredLineup();
+                    if (unrosteredLineup) {
+                        allTeams.push({
+                            type: 'unrostered',
+                            points: unrosteredLineup.totalPoints,
+                            lineup: unrosteredLineup
+                        });
+                    }
+                }
+
+                // Sort all teams by total points (highest first)
+                allTeams.sort((a, b) => b.points - a.points);
+
+                // Create and append team cards in order
+                allTeams.forEach((team, index) => {
+                    let teamCard;
+                    if (team.type === 'regular') {
+                        teamCard = this.createTeamCard(team.roster, index + 1);
+                    } else {
+                        teamCard = this.createUnrosteredTeamCard(index + 1, team.lineup);
+                    }
                     container.appendChild(teamCard);
                 });
             }
@@ -587,6 +639,79 @@
                 const bench = playersWithStarterPoints.filter(p => !used.has(p.id));
                 
                 return { starters, bench, scrubs };
+            }
+
+            getOptimalUnrosteredLineup() {
+                if (!this.unrosteredPlayers || !this.unrosteredPlayers.players) {
+                    return null;
+                }
+
+                // Get all unrostered players with their positions and season points
+                const playersWithData = this.unrosteredPlayers.players.map(playerData => {
+                    return {
+                        id: playerData.player_id,
+                        position: playerData.player_info.position,
+                        points: playerData.total_fantasy_points || 0,
+                        weeksPlayed: playerData.weeks_played || 0,
+                        avgPoints: playerData.avg_points_per_week || 0,
+                        info: {
+                            name: playerData.player_info.name,
+                            displayName: playerData.player_info.name,
+                            team: playerData.player_info.team,
+                            position: playerData.player_info.position
+                        },
+                        seasonStats: playerData.season_stats
+                    };
+                }).filter(player => player.position && !['DEF', 'K'].includes(player.position)); // Exclude DEF and K for lineup
+
+                // Separate by position
+                const qbs = playersWithData.filter(p => p.position === 'QB').slice(0, 5);
+                const rbs = playersWithData.filter(p => p.position === 'RB').slice(0, 10);
+                const wrs = playersWithData.filter(p => p.position === 'WR').slice(0, 10);
+                const tes = playersWithData.filter(p => p.position === 'TE').slice(0, 5);
+
+                const starters = [];
+                const used = new Set();
+
+                // 1 QB (highest scoring)
+                if (qbs.length > 0) {
+                    starters.push(qbs[0]);
+                    used.add(qbs[0].id);
+                }
+
+                // 2 RBs (highest scoring)
+                for (let i = 0; i < Math.min(2, rbs.length); i++) {
+                    starters.push(rbs[i]);
+                    used.add(rbs[i].id);
+                }
+
+                // 3 WRs (highest scoring)
+                for (let i = 0; i < Math.min(3, wrs.length); i++) {
+                    starters.push(wrs[i]);
+                    used.add(wrs[i].id);
+                }
+
+                // 1 TE (highest scoring)
+                if (tes.length > 0) {
+                    starters.push(tes[0]);
+                    used.add(tes[0].id);
+                }
+
+                // 1 FLEX (next highest WR, RB, or TE not already used)
+                const flexCandidates = [...rbs, ...wrs, ...tes].filter(p => !used.has(p.id));
+                if (flexCandidates.length > 0) {
+                    flexCandidates.sort((a, b) => b.points - a.points);
+                    starters.push({ ...flexCandidates[0], isFlex: true });
+                    used.add(flexCandidates[0].id);
+                }
+
+                // Bench is remaining top players
+                const bench = playersWithData.filter(p => !used.has(p.id)).slice(0, 8);
+
+                // Calculate total points
+                const totalPoints = starters.reduce((sum, player) => sum + player.points, 0);
+
+                return { starters, bench, totalPoints };
             }
 
             createTeamCard(roster, position) {
@@ -678,6 +803,90 @@
                 }
 
                 return card;
+            }
+
+            createUnrosteredTeamCard(position, lineup = null) {
+                const unrosteredLineup = lineup || this.getOptimalUnrosteredLineup();
+                if (!unrosteredLineup) {
+                    return null;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'team-card unrostered-team';
+
+                // Determine trophy emoji based on position
+                let trophyHtml = '';
+                if (position === 1) {
+                    trophyHtml = '<div class="position-trophy">🥇</div>';
+                } else if (position === 2) {
+                    trophyHtml = '<div class="position-trophy">🥈</div>';
+                } else if (position === 3) {
+                    trophyHtml = '<div class="position-trophy">🥉</div>';
+                } else {
+                    trophyHtml = '<div class="position-trophy">🆓</div>';
+                }
+
+                card.innerHTML = `
+                    <div class="team-header">
+                        ${trophyHtml}
+                        <div class="team-info">
+                            <div class="team-name">Free Agent All-Stars</div>
+                            <div class="display-name">Best Available Players (0.5 PPR Season Total)</div>
+                        </div>
+                        <div class="points-box">
+                            <div class="points-label">Season Points</div>
+                            <div class="points-value">${unrosteredLineup.totalPoints.toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <div class="roster-section">
+                        <div class="roster-title">Optimal Lineup</div>
+                        <div class="starters">
+                            <div class="section-label">Starting Lineup</div>
+                            <div class="player-list" id="unrostered-starters"></div>
+                        </div>
+                        <div class="bench">
+                            <div class="section-label">Top Bench</div>
+                            <div class="player-list" id="unrostered-bench"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Add starters
+                const startersContainer = card.querySelector('#unrostered-starters');
+                unrosteredLineup.starters.forEach(player => {
+                    const playerDiv = this.createUnrosteredPlayerElement(player, true);
+                    startersContainer.appendChild(playerDiv);
+                });
+
+                // Add bench players
+                const benchContainer = card.querySelector('#unrostered-bench');
+                unrosteredLineup.bench.forEach(player => {
+                    const playerDiv = this.createUnrosteredPlayerElement(player, false);
+                    benchContainer.appendChild(playerDiv);
+                });
+
+                return card;
+            }
+
+            createUnrosteredPlayerElement(player, isStarter) {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
+                
+                const position = player.isFlex ? 'FLEX' : player.position;
+                const teamText = player.info.team ? ` - ${player.info.team}` : '';
+                
+                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
+                
+                playerDiv.innerHTML = `
+                    <div class="player-info">
+                        ${positionBadge}
+                        <span class="player-name">${player.info.displayName}</span>
+                        <span class="player-position">${teamText}</span>
+                    </div>
+                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #999; font-size: 0.8em;">(${player.avgPoints.toFixed(1)} avg)</span></span>
+                `;
+                
+                return playerDiv;
             }
 
             createPlayerElement(playerInfo, isStarter, playerId) {

@@ -82,6 +82,18 @@ class SleeperAPI:
         """Get all NFL players data."""
         return self._make_request("players/nfl")
     
+    def get_weekly_stats(self, sport: str = "nfl", season_type: str = "regular", season: str = "2025", week: int = 3) -> Optional[Dict]:
+        """Get weekly stats for all NFL players."""
+        return self._make_request(f"stats/{sport}/{season_type}/{season}/{week}")
+    
+    def get_multiple_weeks_stats(self, weeks: List[int], sport: str = "nfl", season_type: str = "regular", season: str = "2025") -> Dict[int, Optional[Dict]]:
+        """Get stats for multiple weeks."""
+        stats_by_week = {}
+        for week in weeks:
+            print(f"Fetching stats for week {week}...")
+            stats_by_week[week] = self.get_weekly_stats(sport, season_type, season, week)
+        return stats_by_week
+    
     def get_multiple_weeks_matchups(self, league_id: str, weeks: List[int]) -> Dict[int, Optional[List[Dict]]]:
         """Get matchups for multiple weeks."""
         matchups_by_week = {}
@@ -89,6 +101,107 @@ class SleeperAPI:
             print(f"Fetching matchups for week {week}...")
             matchups_by_week[week] = self.get_league_matchups(league_id, week)
         return matchups_by_week
+
+
+def get_rostered_players(rosters_data: List[Dict]) -> set:
+    """Get all player IDs that are currently rostered in the league."""
+    rostered_players = set()
+    for roster in rosters_data:
+        players = roster.get('players', [])
+        if players:
+            rostered_players.update(players)
+    return rostered_players
+
+
+def get_unrostered_players_with_season_stats(players_data: Dict, rostered_players: set, stats_by_week: Dict[int, Dict]) -> Dict:
+    """Get unrostered players with their season totals."""
+    unrostered_with_stats = {}
+    
+    for player_id, player_info in players_data.items():
+        # Skip if player is rostered
+        if player_id in rostered_players:
+            continue
+            
+        # Skip if player is not active
+        if not player_info.get('active', False):
+            continue
+        
+        # Calculate season totals for this player
+        season_totals = {}
+        weekly_stats = {}
+        total_fantasy_points = 0
+        weeks_played = 0
+        
+        for week, week_stats in stats_by_week.items():
+            if not week_stats or player_id not in week_stats:
+                continue
+                
+            player_week_stats = week_stats[player_id]
+            weekly_stats[f'week_{week}'] = player_week_stats
+            
+            # Add to season totals
+            for stat, value in player_week_stats.items():
+                if isinstance(value, (int, float)) and stat != 'gms_active':
+                    if stat not in season_totals:
+                        season_totals[stat] = 0
+                    season_totals[stat] += value
+            
+            # Track fantasy points and games (using 0.5 PPR scoring)
+            week_fantasy_points = player_week_stats.get('pts_half_ppr', 0)
+            if week_fantasy_points > 0:
+                total_fantasy_points += week_fantasy_points
+                weeks_played += 1
+        
+        # Only include players with meaningful season fantasy stats
+        if total_fantasy_points > 0:
+            unrostered_with_stats[player_id] = {
+                'player_info': {
+                    'name': f"{player_info.get('first_name', '')} {player_info.get('last_name', '')}".strip(),
+                    'position': player_info.get('position', 'N/A'),
+                    'team': player_info.get('team', 'N/A'),
+                    'years_exp': player_info.get('years_exp', 0),
+                    'fantasy_positions': player_info.get('fantasy_positions', [])
+                },
+                'season_stats': season_totals,
+                'weekly_stats': weekly_stats,
+                'total_fantasy_points': total_fantasy_points,
+                'weeks_played': weeks_played,
+                'avg_points_per_week': total_fantasy_points / weeks_played if weeks_played > 0 else 0
+            }
+    
+    return unrostered_with_stats
+
+
+def save_unrostered_players_season_stats(unrostered_stats: Dict, league_id: str, current_week: int, season: str = "2025") -> str:
+    """Save unrostered players season stats to JSON file."""
+    
+    # Sort players by total season fantasy points
+    sorted_players = []
+    for player_id, data in unrostered_stats.items():
+        total_fantasy_points = data['total_fantasy_points']
+        sorted_players.append({
+            'player_id': player_id,
+            'total_fantasy_points': total_fantasy_points,
+            **data
+        })
+    
+    # Sort by total season fantasy points descending
+    sorted_players.sort(key=lambda x: x['total_fantasy_points'], reverse=True)
+    
+    output_data = {
+        'league_id': league_id,
+        'season': season,
+        'weeks_included': list(range(1, current_week + 1)),
+        'total_unrostered_players': len(sorted_players),
+        'generated_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+        'players': sorted_players
+    }
+    
+    filename = f"league_{league_id}_unrostered_season_stats.json"
+    with open(filename, 'w') as f:
+        json.dump(output_data, f, indent=2)
+    
+    return filename
 
 
 def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players_data: Dict, users_data: List[Dict], rosters_data: List[Dict], league_info: Dict, current_week: int, league_id: str) -> None:
@@ -389,6 +502,58 @@ def main():
         print("\nTo serve the files locally, you can use:")
         print("  python3 -m http.server 8080")
         print("  Then visit: http://localhost:8080")
+    
+    # Fetch and process unrostered players season stats
+    if players_data and rosters:
+        print("\n" + "=" * 60)
+        print("FETCHING UNROSTERED PLAYERS SEASON STATS")
+        print("=" * 60)
+        
+        # Get current season from league info
+        season = str(league_info.get('season', 2025))
+        
+        # Fetch stats for all weeks up to current week
+        weeks_to_fetch = list(range(1, current_week + 1))
+        print(f"Fetching weekly stats for weeks 1-{current_week} of {season} season...")
+        stats_by_week = api.get_multiple_weeks_stats(weeks_to_fetch, season=season)
+        
+        # Filter out failed requests
+        valid_stats = {week: stats for week, stats in stats_by_week.items() if stats is not None}
+        
+        if valid_stats:
+            print(f"Successfully fetched stats for {len(valid_stats)} weeks")
+            print("Identifying rostered players...")
+            rostered_players = get_rostered_players(rosters)
+            print(f"Found {len(rostered_players)} rostered players")
+            
+            print("Calculating season totals for unrostered players...")
+            unrostered_stats = get_unrostered_players_with_season_stats(players_data, rostered_players, valid_stats)
+            print(f"Found {len(unrostered_stats)} unrostered players with season fantasy stats")
+            
+            if unrostered_stats:
+                print("Saving unrostered players season stats...")
+                unrostered_filename = save_unrostered_players_season_stats(unrostered_stats, league_id, current_week, season)
+                output_files['Unrostered Season Stats'] = unrostered_filename
+                
+                # Show top 10 unrostered performers by season total
+                sorted_unrostered = sorted(unrostered_stats.items(), 
+                                         key=lambda x: x[1]['total_fantasy_points'], 
+                                         reverse=True)
+                
+                print(f"\nTop 10 Unrostered Performers (Season Total):")
+                print("-" * 70)
+                for i, (player_id, data) in enumerate(sorted_unrostered[:10], 1):
+                    name = data['player_info']['name']
+                    pos = data['player_info']['position']
+                    team = data['player_info']['team']
+                    total_points = data['total_fantasy_points']
+                    weeks_played = data['weeks_played']
+                    avg_points = data['avg_points_per_week']
+                    print(f"{i:2d}. {name:<20} ({pos}, {team}) - {total_points:.1f} pts ({weeks_played} wks, {avg_points:.1f} avg)")
+            else:
+                print("No unrostered players found with season fantasy stats.")
+        else:
+            print("Failed to fetch weekly stats data for any week.")
 
 
 if __name__ == "__main__":
