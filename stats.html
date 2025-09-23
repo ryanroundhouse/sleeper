@@ -416,14 +416,18 @@
                             });
                         }
                         
+                        // Calculate optimal points for this week
+                        const playerData = this.organizePlayersByPerformance(matchup);
+                        const optimalPoints = playerData.starters.reduce((sum, player) => sum + player.points, 0);
+                        
                         const team = this.teamData.get(matchup.roster_id);
                         team.weeks.push({
                             week: week.week,
-                            points: matchup.total_points
+                            points: optimalPoints
                         });
-                        team.totalPoints += matchup.total_points;
-                        team.highestWeek = Math.max(team.highestWeek, matchup.total_points);
-                        team.lowestWeek = Math.min(team.lowestWeek, matchup.total_points);
+                        team.totalPoints += optimalPoints;
+                        team.highestWeek = Math.max(team.highestWeek, optimalPoints);
+                        team.lowestWeek = Math.min(team.lowestWeek, optimalPoints);
                     });
                 });
                 
@@ -432,6 +436,88 @@
                     team.avgPoints = team.totalPoints / team.weeks.length;
                     team.weeks.sort((a, b) => a.week - b.week);
                 });
+            }
+
+            organizePlayersByPerformance(matchup) {
+                // Get all players with their positions and points
+                const allPlayers = [];
+                Object.entries(matchup.players_points).forEach(([playerId, points]) => {
+                    const player = this.leagueData.players[playerId];
+                    
+                    const playerData = {
+                        id: playerId,
+                        name: player ? player.name : 'Unknown Player',
+                        position: player ? player.position : 'N/A',
+                        team: player ? player.team : 'N/A',
+                        points: points,
+                        wasActualStarter: matchup.starters.includes(playerId)
+                    };
+
+                    if (playerData.position !== 'N/A') {
+                        allPlayers.push(playerData);
+                    }
+                });
+
+                // Create optimal lineup based on points
+                const optimalLineup = this.getOptimalLineup(allPlayers);
+                
+                return optimalLineup;
+            }
+
+            getOptimalLineup(allPlayers) {
+                // Separate players with points from scrubs (0 points)
+                const playersWithPoints = allPlayers.filter(p => p.points > 0);
+                const scrubs = allPlayers.filter(p => p.points === 0);
+                
+                // Sort by points (highest first)
+                playersWithPoints.sort((a, b) => b.points - a.points);
+                scrubs.sort((a, b) => b.points - a.points);
+                
+                // Separate by position (only players with points)
+                const qbs = playersWithPoints.filter(p => p.position === 'QB');
+                const rbs = playersWithPoints.filter(p => p.position === 'RB');
+                const wrs = playersWithPoints.filter(p => p.position === 'WR');
+                const tes = playersWithPoints.filter(p => p.position === 'TE');
+                
+                const starters = [];
+                const used = new Set();
+                
+                // 1 QB (highest scoring)
+                if (qbs.length > 0) {
+                    starters.push(qbs[0]);
+                    used.add(qbs[0].id);
+                }
+                
+                // 2 RBs (highest scoring)
+                for (let i = 0; i < Math.min(2, rbs.length); i++) {
+                    starters.push(rbs[i]);
+                    used.add(rbs[i].id);
+                }
+                
+                // 3 WRs (highest scoring)
+                for (let i = 0; i < Math.min(3, wrs.length); i++) {
+                    starters.push(wrs[i]);
+                    used.add(wrs[i].id);
+                }
+                
+                // 1 TE (highest scoring)
+                if (tes.length > 0) {
+                    starters.push(tes[0]);
+                    used.add(tes[0].id);
+                }
+                
+                // 1 FLEX (next highest WR, RB, or TE not already used)
+                const flexCandidates = [...rbs, ...wrs, ...tes].filter(p => !used.has(p.id));
+                if (flexCandidates.length > 0) {
+                    flexCandidates.sort((a, b) => b.points - a.points);
+                    starters.push({ ...flexCandidates[0], slotPosition: 'FLEX' });
+                    used.add(flexCandidates[0].id);
+                }
+                
+                // Bench is everyone else with points
+                const bench = playersWithPoints.filter(p => !used.has(p.id));
+                
+                return { starters, bench, scrubs };
             }
 
             createChart() {
