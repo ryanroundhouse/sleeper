@@ -299,6 +299,21 @@
             opacity: 0.9;
         }
 
+        .unrostered-team {
+            border: 3px solid #e67e22;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .unrostered-team .team-header {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .unrostered-team .position-trophy {
+            background: rgba(255, 255, 255, 0.9);
+            color: #e67e22;
+            font-size: 1.2rem;
+        }
+
         .position-badge {
             display: inline-block;
             padding: 2px 6px;
@@ -431,6 +446,7 @@
             constructor() {
                 this.leagueData = null;
                 this.currentWeek = null;
+                this.unrosteredPlayers = null;
             }
 
             async loadData() {
@@ -440,6 +456,16 @@
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                     this.leagueData = await response.json();
+                    
+                    // Try to load unrostered players season data
+                    try {
+                        const unrosteredResponse = await fetch(`league_${this.leagueData.league_info.league_id}_unrostered_season_stats.json`);
+                        if (unrosteredResponse.ok) {
+                            this.unrosteredPlayers = await unrosteredResponse.json();
+                        }
+                    } catch (error) {
+                        console.log('Unrostered players season data not available:', error);
+                    }
                     
                     // Update header
                     document.getElementById('league-name').textContent = this.leagueData.league_info.name;
@@ -497,13 +523,38 @@
                 const matchupsWithOptimalPoints = weekData.matchups.map(matchup => {
                     const playerData = this.organizePlayersByPerformance(matchup);
                     const optimalPoints = playerData.starters.reduce((sum, player) => sum + player.points, 0);
-                    return { ...matchup, optimalPoints };
+                    return { ...matchup, optimalPoints, type: 'regular' };
                 });
 
-                const sortedMatchups = matchupsWithOptimalPoints.sort((a, b) => b.optimalPoints - a.optimalPoints);
+                // Create array of all teams (regular + unrostered)
+                const allTeams = [...matchupsWithOptimalPoints];
 
-                sortedMatchups.forEach((matchup, index) => {
-                    const teamCard = this.createTeamCard(matchup, index + 1);
+                // Add unrostered team if data is available
+                if (this.unrosteredPlayers) {
+                    const unrosteredLineup = this.getOptimalUnrosteredLineupForWeek(weekData.week);
+                    if (unrosteredLineup) {
+                        allTeams.push({
+                            type: 'unrostered',
+                            optimalPoints: unrosteredLineup.totalPoints,
+                            team_name: 'Free Agent All-Stars',
+                            display_name: `Best Available Players (Week ${weekData.week})`,
+                            roster_id: 'unrostered',
+                            lineup: unrosteredLineup
+                        });
+                    }
+                }
+
+                // Sort all teams by optimal points (highest first)
+                allTeams.sort((a, b) => b.optimalPoints - a.optimalPoints);
+
+                // Create and append team cards in order
+                allTeams.forEach((team, index) => {
+                    let teamCard;
+                    if (team.type === 'regular') {
+                        teamCard = this.createTeamCard(team, index + 1);
+                    } else {
+                        teamCard = this.createUnrosteredTeamCard(team, index + 1);
+                    }
                     container.appendChild(teamCard);
                 });
             }
@@ -594,6 +645,85 @@
                 return card;
             }
 
+            createUnrosteredTeamCard(teamData, position) {
+                const card = document.createElement('div');
+                card.className = 'team-card unrostered-team';
+
+                // Determine trophy emoji based on position
+                let trophyHtml = '';
+                if (position === 1) {
+                    trophyHtml = '<div class="position-trophy">🥇</div>';
+                } else if (position === 2) {
+                    trophyHtml = '<div class="position-trophy">🥈</div>';
+                } else if (position === 3) {
+                    trophyHtml = '<div class="position-trophy">🥉</div>';
+                } else {
+                    trophyHtml = '<div class="position-trophy">🆓</div>';
+                }
+
+                card.innerHTML = `
+                    <div class="team-header">
+                        ${trophyHtml}
+                        <div class="team-info">
+                            <div class="team-name">${teamData.team_name}</div>
+                            <div class="display-name">${teamData.display_name} (0.5 PPR)</div>
+                        </div>
+                        <div class="points-box">
+                            <div class="points-label">Week Points</div>
+                            <div class="points-value">${teamData.optimalPoints.toFixed(1)}</div>
+                        </div>
+                    </div>
+                    <div class="roster-section">
+                        <div class="roster-title">Optimal Free Agent Lineup</div>
+                        <div class="starters">
+                            <div class="section-label">Starting Lineup</div>
+                            <div class="player-list" id="unrostered-starters-${teamData.roster_id}"></div>
+                        </div>
+                        <div class="bench">
+                            <div class="section-label">Top Bench</div>
+                            <div class="player-list" id="unrostered-bench-${teamData.roster_id}"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Add starters
+                const startersContainer = card.querySelector(`#unrostered-starters-${teamData.roster_id}`);
+                teamData.lineup.starters.forEach(player => {
+                    const playerDiv = this.createUnrosteredPlayerElement(player, true);
+                    startersContainer.appendChild(playerDiv);
+                });
+
+                // Add bench players
+                const benchContainer = card.querySelector(`#unrostered-bench-${teamData.roster_id}`);
+                teamData.lineup.bench.forEach(player => {
+                    const playerDiv = this.createUnrosteredPlayerElement(player, false);
+                    benchContainer.appendChild(playerDiv);
+                });
+
+                return card;
+            }
+
+            createUnrosteredPlayerElement(player, isStarter) {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
+                
+                const position = player.isFlex ? 'FLEX' : player.position;
+                const teamText = player.info.team ? ` - ${player.info.team}` : '';
+                
+                const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
+                
+                playerDiv.innerHTML = `
+                    <div class="player-info">
+                        ${positionBadge}
+                        <span class="player-name">${player.info.displayName}</span>
+                        <span class="player-position">${teamText}</span>
+                    </div>
+                    <span class="player-points">${player.points.toFixed(1)}</span>
+                `;
+                
+                return playerDiv;
+            }
+
             organizePlayersByPerformance(matchup) {
                 // Get all players with their positions and points
                 const allPlayers = [];
@@ -674,6 +804,93 @@
                 const bench = playersWithPoints.filter(p => !used.has(p.id));
                 
                 return { starters, bench, scrubs };
+            }
+
+            getOptimalUnrosteredLineupForWeek(week) {
+                if (!this.unrosteredPlayers || !this.unrosteredPlayers.players) {
+                    return null;
+                }
+
+                // Get all unrostered players with their week-specific performance
+                const playersWithWeekData = [];
+                
+                this.unrosteredPlayers.players.forEach(playerData => {
+                    const weekKey = `week_${week}`;
+                    const weekStats = playerData.weekly_stats[weekKey];
+                    
+                    if (weekStats && weekStats.pts_half_ppr > 0) {
+                        playersWithWeekData.push({
+                            id: playerData.player_id,
+                            position: playerData.player_info.position,
+                            points: weekStats.pts_half_ppr,
+                            info: {
+                                name: playerData.player_info.name,
+                                displayName: playerData.player_info.name,
+                                team: playerData.player_info.team,
+                                position: playerData.player_info.position
+                            },
+                            weekStats: weekStats
+                        });
+                    }
+                });
+
+                // Filter out DEF and K for lineup
+                const skillPositionPlayers = playersWithWeekData.filter(player => 
+                    player.position && !['DEF', 'K'].includes(player.position)
+                );
+
+                if (skillPositionPlayers.length === 0) {
+                    return null;
+                }
+
+                // Separate by position
+                const qbs = skillPositionPlayers.filter(p => p.position === 'QB').slice(0, 5);
+                const rbs = skillPositionPlayers.filter(p => p.position === 'RB').slice(0, 10);
+                const wrs = skillPositionPlayers.filter(p => p.position === 'WR').slice(0, 10);
+                const tes = skillPositionPlayers.filter(p => p.position === 'TE').slice(0, 5);
+
+                const starters = [];
+                const used = new Set();
+
+                // 1 QB (highest scoring)
+                if (qbs.length > 0) {
+                    starters.push(qbs[0]);
+                    used.add(qbs[0].id);
+                }
+
+                // 2 RBs (highest scoring)
+                for (let i = 0; i < Math.min(2, rbs.length); i++) {
+                    starters.push(rbs[i]);
+                    used.add(rbs[i].id);
+                }
+
+                // 3 WRs (highest scoring)
+                for (let i = 0; i < Math.min(3, wrs.length); i++) {
+                    starters.push(wrs[i]);
+                    used.add(wrs[i].id);
+                }
+
+                // 1 TE (highest scoring)
+                if (tes.length > 0) {
+                    starters.push(tes[0]);
+                    used.add(tes[0].id);
+                }
+
+                // 1 FLEX (next highest WR, RB, or TE not already used)
+                const flexCandidates = [...rbs, ...wrs, ...tes].filter(p => !used.has(p.id));
+                if (flexCandidates.length > 0) {
+                    flexCandidates.sort((a, b) => b.points - a.points);
+                    starters.push({ ...flexCandidates[0], isFlex: true });
+                    used.add(flexCandidates[0].id);
+                }
+
+                // Bench is remaining top players
+                const bench = skillPositionPlayers.filter(p => !used.has(p.id)).slice(0, 8);
+
+                // Calculate total points
+                const totalPoints = starters.reduce((sum, player) => sum + player.points, 0);
+
+                return { starters, bench, totalPoints };
             }
 
             createPlayerElement(player, isStarter) {
