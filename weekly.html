@@ -548,12 +548,15 @@
                 allTeams.sort((a, b) => b.optimalPoints - a.optimalPoints);
 
                 // Create and append team cards in order
+                let regularTeamPosition = 1;
                 allTeams.forEach((team, index) => {
                     let teamCard;
                     if (team.type === 'regular') {
-                        teamCard = this.createTeamCard(team, index + 1);
+                        teamCard = this.createTeamCard(team, regularTeamPosition);
+                        regularTeamPosition++;
                     } else {
-                        teamCard = this.createUnrosteredTeamCard(team, index + 1);
+                        // Free agent team always gets the 🆓 emoji, no trophy
+                        teamCard = this.createUnrosteredTeamCard(team, null);
                     }
                     container.appendChild(teamCard);
                 });
@@ -649,17 +652,8 @@
                 const card = document.createElement('div');
                 card.className = 'team-card unrostered-team';
 
-                // Determine trophy emoji based on position
-                let trophyHtml = '';
-                if (position === 1) {
-                    trophyHtml = '<div class="position-trophy">🥇</div>';
-                } else if (position === 2) {
-                    trophyHtml = '<div class="position-trophy">🥈</div>';
-                } else if (position === 3) {
-                    trophyHtml = '<div class="position-trophy">🥉</div>';
-                } else {
-                    trophyHtml = '<div class="position-trophy">🆓</div>';
-                }
+                // Free agent team always gets the 🆓 emoji, no trophy awards
+                const trophyHtml = '<div class="position-trophy">🆓</div>';
 
                 card.innerHTML = `
                     <div class="team-header">
@@ -818,7 +812,7 @@
                     const weekKey = `week_${week}`;
                     const weekStats = playerData.weekly_stats[weekKey];
                     
-                    if (weekStats && weekStats.pts_half_ppr > 0) {
+                    if (weekStats && weekStats.pts_half_ppr && weekStats.pts_half_ppr > 0) {
                         playersWithWeekData.push({
                             id: playerData.player_id,
                             position: playerData.player_info.position,
@@ -843,11 +837,15 @@
                     return null;
                 }
 
-                // Separate by position
-                const qbs = skillPositionPlayers.filter(p => p.position === 'QB').slice(0, 5);
-                const rbs = skillPositionPlayers.filter(p => p.position === 'RB').slice(0, 10);
-                const wrs = skillPositionPlayers.filter(p => p.position === 'WR').slice(0, 10);
-                const tes = skillPositionPlayers.filter(p => p.position === 'TE').slice(0, 5);
+                // Separate by position and sort each by points (highest first)
+                const qbs = skillPositionPlayers.filter(p => p.position === 'QB')
+                    .sort((a, b) => b.points - a.points).slice(0, 5);
+                const rbs = skillPositionPlayers.filter(p => p.position === 'RB')
+                    .sort((a, b) => b.points - a.points).slice(0, 10);
+                const wrs = skillPositionPlayers.filter(p => p.position === 'WR')
+                    .sort((a, b) => b.points - a.points).slice(0, 10);
+                const tes = skillPositionPlayers.filter(p => p.position === 'TE')
+                    .sort((a, b) => b.points - a.points).slice(0, 5);
 
                 const starters = [];
                 const used = new Set();
