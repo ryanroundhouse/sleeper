@@ -488,7 +488,7 @@
                         position: player ? player.position : 'N/A',
                         team: player ? player.team : 'N/A',
                         points: points,
-                        wasActualStarter: matchup.starters.includes(playerId)
+                        wasActualStarter: matchup.starters ? matchup.starters.includes(playerId) : false
                     };
 
                     if (playerData.position !== 'N/A') {
