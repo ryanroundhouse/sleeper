@@ -50,11 +50,13 @@
     "league_id": "1264686617134628864",
     "metadata": {
       "allow_pn": "off",
+      "avatar": "https://sleepercdn.com/uploads/7c2be458db29ca20392a3feb04261ee6.jpg",
       "league_report_pn": "on",
       "mascot_message": "on",
       "mention_pn": "on",
       "player_like_pn": "on",
       "player_nickname_update": "on",
+      "team_name": "#weass",
       "team_name_update": "on",
       "trade_block_pn": "on",
       "transaction_commissioner": "on",
@@ -74,7 +76,8 @@
     "league_id": "1264686617134628864",
     "metadata": {
       "allow_pn": "on",
-      "mention_pn": "on"
+      "mention_pn": "on",
+      "team_name": "Strange Chubb"
     },
     "settings": null,
     "user_id": "1132468884948410368"
@@ -89,7 +92,7 @@
       "allow_pn": "on",
       "allow_sms": "on",
       "mention_pn": "on",
-      "team_name": "Rookies and Regrets"
+      "team_name": "Dart or Shart"
     },
     "settings": null,
     "user_id": "1263662098932576256"
@@ -117,7 +120,7 @@
       "allow_pn": "on",
       "avatar": "https://sleepercdn.com/uploads/b5a807d6e713c01374f1dec0d7e5c973",
       "mention_pn": "on",
-      "team_name": "Juwan Malik my Penix"
+      "team_name": "No Love for soft Penix"
     },
     "settings": null,
     "user_id": "1264796825332756480"
