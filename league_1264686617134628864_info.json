@@ -63,10 +63,7 @@
     "daily_waivers_last_ran": 30
   },
   "avatar": "e949bcb57b8c953dad1ffc4e49b00194",
-  "shard": 399,
-  "season": "2025",
-  "season_type": "regular",
-  "sport": "nfl",
+  "company_id": null,
   "scoring_settings": {
     "sack": 1.0,
     "fgm_40_49": 4.0,
@@ -112,7 +109,10 @@
     "pts_allow_7_13": 4.0,
     "st_ff": 1.0
   },
-  "company_id": null,
+  "season": "2025",
+  "season_type": "regular",
+  "shard": 399,
+  "sport": "nfl",
   "last_message_id": "1283971262099513344",
   "last_author_avatar": null,
   "last_author_display_name": "sys",
@@ -122,8 +122,8 @@
   "last_message_text_map": null,
   "last_message_time": 1760485113219,
   "last_pinned_message_id": "1275510294067572736",
-  "last_read_id": null,
   "draft_id": "1264686617742811136",
+  "last_read_id": null,
   "league_id": "1264686617134628864",
   "previous_league_id": null,
   "roster_positions": [
@@ -146,9 +146,9 @@
     "BN",
     "BN"
   ],
+  "group_id": null,
   "bracket_id": null,
   "bracket_overrides_id": null,
-  "group_id": null,
   "loser_bracket_id": null,
   "loser_bracket_overrides_id": null,
   "total_rosters": 14
