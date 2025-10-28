@@ -114,7 +114,6 @@
     "st_ff": 1.0
   },
   "last_message_id": "1288253452375310336",
-  "draft_id": "1264686617742811136",
   "last_author_avatar": "0be2ea91357edb30e63a57f5ff551736",
   "last_author_display_name": "VillainousGoose",
   "last_author_id": "1264802806892605440",
@@ -124,13 +123,10 @@
   "last_message_time": 1761506066939,
   "last_pinned_message_id": "1275510294067572736",
   "last_read_id": null,
+  "draft_id": "1264686617742811136",
   "league_id": "1264686617134628864",
   "previous_league_id": null,
   "group_id": null,
-  "bracket_id": null,
-  "bracket_overrides_id": null,
-  "loser_bracket_id": null,
-  "loser_bracket_overrides_id": null,
   "roster_positions": [
     "QB",
     "RB",
@@ -151,5 +147,9 @@
     "BN",
     "BN"
   ],
+  "bracket_id": null,
+  "bracket_overrides_id": null,
+  "loser_bracket_id": null,
+  "loser_bracket_overrides_id": null,
   "total_rosters": 14
 }
