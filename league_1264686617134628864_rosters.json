@@ -236,7 +236,11 @@
     "keepers": null,
     "league_id": "1264686617134628864",
     "metadata": {
+      "allow_pn_inactive_starters": "off",
+      "allow_pn_player_injury_status": "off",
+      "allow_pn_scoring": "off",
       "record": "WLWWWWWLWLLWLWLL",
+      "restrict_pn_scoring_starters_only": "on",
       "streak": "2L"
     },
     "owner_id": "1264802196839485440",

@@ -134,8 +134,18 @@
     "metadata": {
       "allow_pn": "on",
       "avatar": "https://sleepercdn.com/uploads/224995fdd0b02ac82fe54da0c623dcd5.jpg",
+      "league_report_pn": "on",
       "mention_pn": "on",
-      "team_name": "Was Here for Skattebo"
+      "player_like_pn": "off",
+      "player_nickname_update": "on",
+      "team_name": "Was Here for Skattebo",
+      "team_name_update": "on",
+      "trade_block_pn": "off",
+      "transaction_commissioner": "off",
+      "transaction_free_agent": "off",
+      "transaction_trade": "off",
+      "transaction_waiver": "off",
+      "user_message_pn": "on"
     },
     "settings": null,
     "user_id": "1264802196839485440"
