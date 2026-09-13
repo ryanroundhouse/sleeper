@@ -81,16 +81,29 @@ else
     log "INFO" "SLEEPER_LEAGUE_ID not set, using default: $LEAGUE_ID"
 fi
 
-# Setup GitHub authentication using Personal Access Token
+# Setup GitHub authentication.
+# Prefer an already-working remote (SSH deploy/user key), but keep PAT support for
+# older installs that set SLEEPER_GITHUB_TOKEN.
 setup_git_auth() {
+    local origin_url
+    origin_url=$(git remote get-url origin 2>/dev/null || true)
+
+    if [[ "$origin_url" == git@github.com:* || "$origin_url" == ssh://git@github.com/* ]]; then
+        log "INFO" "Using existing SSH GitHub remote: $origin_url"
+        return 0
+    fi
+
     if [ -n "$SLEEPER_GITHUB_TOKEN" ]; then
         log "INFO" "Using GitHub Personal Access Token for authentication"
-        # Configure git to use token
         git remote set-url origin "https://${SLEEPER_GITHUB_TOKEN}@github.com/ryanroundhouse/sleeper.git"
+        return 0
+    fi
+
+    log "INFO" "No SLEEPER_GITHUB_TOKEN set; testing existing Git remote authentication"
+    if git ls-remote origin HEAD >/dev/null 2>&1; then
+        log "SUCCESS" "Existing Git remote authentication works"
     else
-        log "ERROR" "SLEEPER_GITHUB_TOKEN environment variable not set!"
-        log "ERROR" "Please set your GitHub Personal Access Token:"
-        log "ERROR" "export SLEEPER_GITHUB_TOKEN='your_token_here'"
+        log "ERROR" "GitHub authentication failed. Configure SSH access or set SLEEPER_GITHUB_TOKEN."
         exit 1
     fi
 }
