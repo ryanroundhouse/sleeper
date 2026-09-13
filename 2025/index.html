@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Least Important League - Teams & Rosters</title>
+    <title>2025 Archive - Your Least Important League - Teams & Rosters</title>
     <style>
         * {
             margin: 0;
@@ -403,13 +403,15 @@
             <p id="league-info">Fetching league information...</p>
         </div>
 
+        <div class="archive-banner">📦 2025 Season Archive — final results as of the end of the season. <a href="../index.html">Go to the current season</a>.</div>
+
         <div class="navigation">
             <div class="nav-buttons">
                 <button class="nav-button active">Season Results</button>
                 <button class="nav-button" onclick="window.location.href='weekly.html'">Weekly Results</button>
                 <button class="nav-button" onclick="window.location.href='stats.html'">Stats</button>
                 <button class="nav-button" onclick="window.location.href='hall-of-fame.html'">Hall of Fame</button>
-                <button class="nav-button nav-button-archive" onclick="window.location.href='2025/index.html'">2025 Season</button>
+                <button class="nav-button nav-button-archive" onclick="window.location.href='../index.html'">⬅ Current Season</button>
             </div>
         </div>
         
@@ -425,7 +427,7 @@
     </div>
 
     <script>
-        const PLAYERS_FILE = 'nfl_players.json';
+        const PLAYERS_FILE = '../nfl_players.json';
 
         class LeagueViewer {
             constructor() {

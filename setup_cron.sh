@@ -61,7 +61,7 @@ echo "📦 Installing Python dependencies in virtual environment..."
 echo "✅ Python dependencies installed in virtual environment"
 
 # Set up environment variables
-LEAGUE_ID="1264686617134628864"
+LEAGUE_ID="1389378463139373056"
 echo "🔧 Setting up environment variables..."
 
 # Add SLEEPER_LEAGUE_ID to .bashrc if not already there

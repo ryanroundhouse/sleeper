@@ -34,6 +34,23 @@ The script fetches and updates the following data each time it runs:
 - **Draft Information** - Pick order, draft results (only changes if redraft)
 - **League Basic Info** - League name, total teams (rarely changes)
 
+## 📦 Archived Seasons
+
+Completed seasons live in a subdirectory named for the year (e.g. `2025/`) with their own
+copies of the four HTML pages and final data files. The main pages link to them via the
+"2025 Season" nav button; archived pages show a banner and a "Current Season" link back.
+
+To archive a finished season (Sleeper gives each season a new league ID):
+
+```bash
+python sleeper_league_data.py <OLD_LEAGUE_ID> 2025
+cp index.html weekly.html stats.html hall-of-fame.html 2025/   # then adjust links as in 2025/
+```
+
+Then point `SLEEPER_LEAGUE_ID` in `.env`, `update_league_data.sh`, and `setup_cron.sh` at
+the new season's league ID. Archived seasons read `../nfl_players.json` rather than keeping
+their own 17MB copy.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -69,7 +86,7 @@ The script fetches and updates the following data each time it runs:
    
    Example:
    ```bash
-   python sleeper_league_data.py 1264686617134628864
+   python sleeper_league_data.py 1389378463139373056
    ```
 
 **Option 2: Using .env File (Recommended for Automation)**
@@ -77,7 +94,7 @@ The script fetches and updates the following data each time it runs:
 1. **Create a .env file** in your sleeper directory:
    ```env
    # Copy this content to a file named ".env"
-   SLEEPER_LEAGUE_ID=1264686617134628864
+   SLEEPER_LEAGUE_ID=1389378463139373056
    ```
 
 2. **Run the script** (no arguments needed):
@@ -218,13 +235,13 @@ cp sleeper_league_data.py index.html league1/
 cp sleeper_league_data.py index.html league2/
 
 # Create .env file in each directory with different SLEEPER_LEAGUE_ID
-echo "SLEEPER_LEAGUE_ID=1264686617134628864" > league1/.env
+echo "SLEEPER_LEAGUE_ID=1389378463139373056" > league1/.env
 echo "SLEEPER_LEAGUE_ID=ANOTHER_LEAGUE_ID" > league2/.env
 ```
 
 **Option 2: Command line arguments**
 ```bash
-python sleeper_league_data.py 1264686617134628864
+python sleeper_league_data.py 1389378463139373056
 python sleeper_league_data.py ANOTHER_LEAGUE_ID
 ```
 
@@ -236,7 +253,7 @@ The `.env` file supports the following configuration options:
 
 ```env
 # Required: Your Sleeper League ID
-SLEEPER_LEAGUE_ID=1264686617134628864
+SLEEPER_LEAGUE_ID=1389378463139373056
 
 # Optional: Web server port (default: 8000)
 WEB_SERVER_PORT=8000
@@ -345,7 +362,7 @@ pip install requests
 1. Open Sleeper app or website
 2. Go to your league
 3. Look at the URL: `https://sleeper.app/leagues/YOUR_LEAGUE_ID/...`
-4. Copy the long number (e.g., `1264686617134628864`)
+4. Copy the long number (e.g., `1389378463139373056`)
 
 ## 📊 API Rate Limits
 

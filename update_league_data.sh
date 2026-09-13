@@ -7,7 +7,7 @@
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/update_league_data.log"
-LEAGUE_ID="${SLEEPER_LEAGUE_ID:-1264686617134628864}"  # Default to your league ID
+LEAGUE_ID="${SLEEPER_LEAGUE_ID:-1389378463139373056}"  # Default to your league ID
 VENV_PATH="$SCRIPT_DIR/venv"
 PYTHON_CMD="$VENV_PATH/bin/python3"
 

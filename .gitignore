@@ -34,17 +34,8 @@ wheels/
 *.egg
 MANIFEST
 
-# League data files (these contain personal league information)
-league_*_info.json
-league_*_rosters.json
-league_*_users.json
-league_*_matchups_*.json
-league_*_draft_info.json
-league_*_draft_picks.json
-
-# NFL data files (large files that can be re-downloaded)
-nfl_players.json
-nfl_state.json
+# League data JSON files are intentionally tracked: the static site needs them
+# (including the archived seasons under e.g. 2025/).
 
 # IDE and editor files
 .vscode/

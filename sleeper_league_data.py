@@ -11,7 +11,11 @@ This script fetches comprehensive league data from the Sleeper API including:
 
 The script saves all data to JSON files for use by static HTML interfaces.
 
-Usage: python sleeper_league_data.py <league_id>
+Usage: python sleeper_league_data.py <league_id> [output_dir]
+
+Pass an output_dir (e.g. "2025") to archive a completed season into a
+subdirectory. Archived seasons use the league's final week and share the
+root nfl_players.json instead of writing their own copy.
 """
 
 import requests
@@ -338,6 +342,17 @@ def load_env_file():
                     os.environ[key.strip()] = value.strip()
 
 
+def get_output_dir() -> Optional[str]:
+    """Optional output directory (2nd CLI arg or SLEEPER_OUTPUT_DIR).
+
+    Used to archive a completed season (e.g. "2025") without touching the
+    current-season files in the project root.
+    """
+    if len(sys.argv) >= 3:
+        return sys.argv[2]
+    return os.environ.get('SLEEPER_OUTPUT_DIR') or None
+
+
 def get_league_id():
     """Get league ID from command line argument or environment variable."""
     # First try command line argument
@@ -353,8 +368,8 @@ def get_league_id():
     print("Error: No league ID provided!")
     print()
     print("Usage options:")
-    print("1. Command line: python sleeper_league_data.py <league_id>")
-    print("   Example: python sleeper_league_data.py 1264686617134628864")
+    print("1. Command line: python sleeper_league_data.py <league_id> [output_dir]")
+    print("   Example: python sleeper_league_data.py 1389378463139373056")
     print()
     print("2. Environment file: Create a .env file with:")
     print("   SLEEPER_LEAGUE_ID=your_league_id_here")
@@ -374,7 +389,12 @@ def main():
     
     # Get league ID from various sources
     league_id = get_league_id()
+    output_dir = get_output_dir()
     print(f"Fetching data for Sleeper League ID: {league_id}")
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        os.chdir(output_dir)
+        print(f"Writing output to: {output_dir}/")
     print("=" * 60)
     
     # Initialize API client
@@ -397,6 +417,16 @@ def main():
         print(f"Error: Could not fetch league information for ID {league_id}")
         print("Please check that the league ID is correct and the league exists.")
         sys.exit(1)
+
+    # A completed / previous-season league is frozen at its final scored week,
+    # regardless of what the live NFL state says the current week is.
+    nfl_season = str(nfl_state.get('season')) if nfl_state else None
+    league_season = str(league_info.get('season'))
+    is_archived = league_info.get('status') == 'complete' or (nfl_season and league_season != nfl_season)
+    if is_archived:
+        settings = league_info.get('settings', {})
+        current_week = settings.get('last_scored_leg') or settings.get('leg') or current_week
+        print(f"League season {league_season} is complete; using final week {current_week}")
     
     print("Fetching rosters...")
     rosters = api.get_league_rosters(league_id)
@@ -467,13 +497,14 @@ def main():
             json.dump(draft_picks, f, indent=2)
         output_files['Draft Picks'] = filename
     
-    if nfl_state:
+    if nfl_state and not output_dir:
         filename = f"nfl_state.json"
         with open(filename, 'w') as f:
             json.dump(nfl_state, f, indent=2)
         output_files['NFL State'] = filename
     
-    if players_data:
+    if players_data and not output_dir:
+        # Archived seasons share the root nfl_players.json (17MB) via ../
         filename = f"nfl_players.json"
         with open(filename, 'w') as f:
             json.dump(players_data, f, indent=2)
