@@ -4,321 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Least Important League - Hall of Fame</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .navigation {
-            background: #f8f9fa;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .nav-button {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .nav-button.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .nav-button:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        .section {
-            padding: 30px;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-            color: #2c3e50;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-title.hall-of-fame {
-            color: #f39c12;
-        }
-
-        .section-title.closet-of-shame {
-            color: #e74c3c;
-        }
-
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .player-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .player-header {
-            color: white;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-
-        .player-header.hall-of-fame {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .player-header.closet-of-shame {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .player-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .team-name {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .display-name {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
-
-        .player-info {
-            text-align: center;
-            flex: 1;
-        }
-
-        .medals-box {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            padding: 10px 15px;
-            text-align: center;
-            min-width: 120px;
-        }
-
-        .medals-label {
-            font-size: 0.7rem;
-            opacity: 0.8;
-            margin-bottom: 5px;
-        }
-
-        .medals-display {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2px;
-            font-size: 1.2rem;
-        }
-
-        .poo-display {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2px;
-            font-size: 1.1rem;
-        }
-
-        .position-trophy {
-            position: absolute;
-            left: -15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .weeks-section {
-            padding: 20px;
-        }
-
-        .weeks-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-
-        .weeks-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .week-badge {
-            background: #3498db;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-
-        .week-badge.hall-of-fame {
-            background: #f39c12;
-        }
-
-        .week-badge.closet-of-shame {
-            background: #e74c3c;
-        }
-
-        .error {
-            text-align: center;
-            padding: 50px;
-            color: #e74c3c;
-            font-size: 1.1rem;
-        }
-
-        .empty-section {
-            text-align: center;
-            padding: 50px;
-            color: #7f8c8d;
-            font-size: 1.1rem;
-            font-style: italic;
-        }
-
-        @media (max-width: 768px) {
-            .players-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .navigation {
-                padding: 15px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .nav-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .nav-button {
-                width: 100%;
-                text-align: center;
-            }
-
-            .section {
-                padding: 20px 15px;
-            }
-        }
-        .nav-button-archive {
-            opacity: 0.85;
-            border-style: dashed;
-        }
-        .archive-banner {
-            background: #fff3cd;
-            color: #664d03;
-            border: 1px solid #ffe69c;
-            border-radius: 8px;
-            padding: 10px 16px;
-            margin: 0 0 16px 0;
-            text-align: center;
-            font-weight: 600;
-        }
-        #live-status {
-            font-size: 0.85em;
-            opacity: 0.85;
-            margin: 6px 0 0 0;
-        }
-        #live-status[data-kind="stale"] { color: #ffd166; }
-    </style>
+    <link rel="stylesheet" href="newsprint.css">
+    <script src="newsprint.js" defer></script>
 </head>
-<body>
+<body class="honours-page">
     <div class="container">
         <div class="header">
             <h1 id="league-name">Loading League...</h1>
@@ -341,16 +30,18 @@
         
         <div id="content" style="display: none;">
             <div class="section">
-                <h2 class="section-title hall-of-fame">🏆 Hall of Fame 🏆</h2>
-                <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px; font-style: italic;">
+                <div class="section-kicker">The honour roll</div>
+                <h2 class="section-title hall-of-fame">Hall of Fame</h2>
+                <p style="text-align: center; color: #6b645a; margin-bottom: 30px; font-style: italic;">
                     Champions who have dominated weekly matchups
                 </p>
                 <div id="hall-of-fame-container" class="players-grid"></div>
             </div>
             
-            <div class="section" style="background: #f8f9fa;">
-                <h2 class="section-title closet-of-shame">💩 Closet of Shame 💩</h2>
-                <p style="text-align: center; color: #7f8c8d; margin-bottom: 30px; font-style: italic;">
+            <div class="section" style="background: #f4eddc;">
+                <div class="section-kicker">The other end of the table</div>
+                <h2 class="section-title closet-of-shame">Closet of Shame</h2>
+                <p style="text-align: center; color: #6b645a; margin-bottom: 30px; font-style: italic;">
                     Those who have experienced the agony of weekly defeat
                 </p>
                 <div id="closet-of-shame-container" class="players-grid"></div>
@@ -377,7 +68,10 @@
             async loadData() {
                 SleeperLive.start({
                     live: LIVE_VIEW,
-                    onData: (data) => this.applyData(data),
+                    onData: async (data) => {
+                        await this.applyData(data);
+                        Newsprint.update(data);
+                    },
                     onError: () => this.showError(),
                 });
             }
@@ -621,110 +315,32 @@
                 const card = document.createElement('div');
                 card.className = 'player-card';
 
-                // Determine trophy emoji based on position
-                let trophyHtml = '';
-                if (position === 1) {
-                    trophyHtml = '<div class="position-trophy">🥇</div>';
-                } else if (position === 2) {
-                    trophyHtml = '<div class="position-trophy">🥈</div>';
-                } else if (position === 3) {
-                    trophyHtml = '<div class="position-trophy">🥉</div>';
-                }
-
-                // Create medals or poo display
-                let displayContent = '';
-                if (type === 'hall-of-fame') {
-                    displayContent = `
-                        <div class="medals-box">
-                            <div class="medals-label">Medals</div>
-                            <div class="medals-display" id="medals-${player.roster_id}"></div>
-                        </div>
-                    `;
-                } else {
-                    displayContent = `
-                        <div class="medals-box">
-                            <div class="medals-label">Shame</div>
-                            <div class="poo-display" id="poo-${player.roster_id}"></div>
-                        </div>
-                    `;
-                }
-
-                card.innerHTML = `
-                    <div class="player-header ${type}">
-                        ${trophyHtml}
-                        <div class="player-info">
-                            <div class="player-name">${player.team_name}</div>
-                            <div class="display-name">${player.display_name}</div>
-                        </div>
-                        ${displayContent}
-                    </div>
-                    <div class="weeks-section">
-                        <div class="weeks-title">Weeks</div>
-                        <div class="weeks-list" id="weeks-${player.roster_id}-${type}"></div>
-                    </div>
-                `;
-
-                // Add medals or poo emojis
-                if (type === 'hall-of-fame') {
-                    const medalsContainer = card.querySelector(`#medals-${player.roster_id}`);
-                    
-                    // Add gold medals (🥇)
-                    for (let i = 0; i < player.firstPlaceCount; i++) {
-                        const medal = document.createElement('span');
-                        medal.textContent = '🥇';
-                        medal.title = `1st place finish`;
-                        medalsContainer.appendChild(medal);
-                    }
-                    
-                    // Add silver medals (🥈)
-                    for (let i = 0; i < player.secondPlaceCount; i++) {
-                        const medal = document.createElement('span');
-                        medal.textContent = '🥈';
-                        medal.title = `2nd place finish`;
-                        medalsContainer.appendChild(medal);
-                    }
-                    
-                    // Add bronze medals (🥉)
-                    for (let i = 0; i < player.thirdPlaceCount; i++) {
-                        const medal = document.createElement('span');
-                        medal.textContent = '🥉';
-                        medal.title = `3rd place finish`;
-                        medalsContainer.appendChild(medal);
-                    }
-                } else {
-                    const pooContainer = card.querySelector(`#poo-${player.roster_id}`);
-                    
-                    // Add poo emojis for last place finishes
-                    for (let i = 0; i < player.lastPlaceCount; i++) {
-                        const poo = document.createElement('span');
-                        poo.textContent = '💩';
-                        poo.title = `Last place finish`;
-                        pooContainer.appendChild(poo);
-                    }
-                }
-
-                // Add week badges (combine all relevant weeks for hall of fame)
-                const weeksContainer = card.querySelector(`#weeks-${player.roster_id}-${type}`);
-                let allWeeks = [];
-                
-                if (type === 'hall-of-fame') {
-                    // Combine all medal weeks
-                    const firstPlaceWeeks = player.firstPlaceWeeks.map(w => ({ week: w, place: '1st' }));
-                    const secondPlaceWeeks = player.secondPlaceWeeks.map(w => ({ week: w, place: '2nd' }));
-                    const thirdPlaceWeeks = player.thirdPlaceWeeks.map(w => ({ week: w, place: '3rd' }));
-                    allWeeks = [...firstPlaceWeeks, ...secondPlaceWeeks, ...thirdPlaceWeeks];
-                    allWeeks.sort((a, b) => a.week - b.week);
-                } else {
-                    allWeeks = player.lastPlaceWeeks.map(w => ({ week: w, place: 'Last' }));
-                }
-
-                allWeeks.forEach(weekInfo => {
-                    const weekBadge = document.createElement('div');
-                    weekBadge.className = `week-badge ${type}`;
-                    weekBadge.textContent = `Week ${weekInfo.week} (${weekInfo.place})`;
-                    weeksContainer.appendChild(weekBadge);
+                const honour = type === 'hall-of-fame';
+                const awards = honour
+                    ? [...player.firstPlaceWeeks.map(week => ({ week, place: 'First' })),
+                       ...player.secondPlaceWeeks.map(week => ({ week, place: 'Second' })),
+                       ...player.thirdPlaceWeeks.map(week => ({ week, place: 'Third' }))].sort((a, b) => a.week - b.week)
+                    : player.lastPlaceWeeks.map(week => ({ week, place: 'Last' }));
+                // Every shame entry earned last place; do not invent different ranks by display order.
+                const rank = honour ? `${position}${position === 1 ? 'st' : position === 2 ? 'nd' : position === 3 ? 'rd' : 'th'}` : String(this.leagueData.league_info.total_rosters);
+                card.classList.add(honour ? 'honour-card' : 'shame-card');
+                card.innerHTML = `<div class="award-rank"></div><div class="award-identity"><h3 class="award-name"></h3><p class="award-owner"></p></div><div class="award-count"><span></span><strong></strong></div><div class="award-weeks"></div>`;
+                card.querySelector('.award-rank').textContent = rank;
+                card.querySelector('.award-name').textContent = player.team_name;
+                card.querySelector('.award-owner').textContent = `mgr. ${player.display_name}`;
+                card.querySelector('.award-count span').textContent = honour ? 'Medals' : 'Shame';
+                card.querySelector('.award-count strong').textContent = awards.length;
+                const weeks = card.querySelector('.award-weeks');
+                awards.forEach(award => {
+                    const row = document.createElement('div');
+                    row.className = 'award-week';
+                    const label = document.createElement('span');
+                    label.textContent = `Wk ${award.week}`;
+                    const place = document.createElement('em');
+                    place.textContent = award.place;
+                    row.append(label, place);
+                    weeks.append(row);
                 });
-
                 return card;
             }
 

@@ -4,403 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Least Important League - Teams & Rosters</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .navigation {
-            background: #f8f9fa;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .nav-button {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .nav-button.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .nav-button:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        .teams-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            padding: 30px;
-        }
-
-        .team-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .team-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .team-header {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-        }
-
-        .team-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .team-record {
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .display-name {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-bottom: 5px;
-        }
-
-        .team-info {
-            text-align: center;
-            flex: 1;
-        }
-
-        .points-box {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 8px;
-            padding: 10px 15px;
-            text-align: center;
-            min-width: 80px;
-        }
-
-        .points-label {
-            font-size: 0.7rem;
-            opacity: 0.8;
-            margin-bottom: 2px;
-        }
-
-        .points-value {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .position-trophy {
-            position: absolute;
-            left: -15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .team-stats {
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .stats-label {
-            color: #666;
-        }
-
-        .stats-value {
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .roster-section {
-            padding: 20px;
-        }
-
-        .roster-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 5px;
-        }
-
-        .starters, .bench, .scrubs {
-            margin-bottom: 20px;
-        }
-
-        .section-label {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #7f8c8d;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .player-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .player {
-            background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
-            border-left: 3px solid #3498db;
-            font-size: 0.9rem;
-            transition: background-color 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .player:hover {
-            background: #e9ecef;
-        }
-
-        .player.starter {
-            border-left-color: #27ae60;
-            background: #d5f4e6;
-        }
-
-        .player.starter:hover {
-            background: #c3f0d9;
-        }
-
-        .scrubs .section-label {
-            color: #95a5a6;
-            opacity: 0.8;
-        }
-
-        .scrubs .player {
-            background: #f8f9fa;
-            border-left-color: #bdc3c7;
-            opacity: 0.7;
-        }
-
-        .scrubs .player:hover {
-            background: #e9ecef;
-            opacity: 0.9;
-        }
-
-        .unrostered-team {
-            border: 3px solid #e67e22;
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .unrostered-team .team-header {
-            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
-        }
-
-        .unrostered-team .position-trophy {
-            background: rgba(255, 255, 255, 0.9);
-            color: #e67e22;
-            font-size: 1.2rem;
-        }
-
-        .position-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: white;
-            margin-right: 8px;
-            min-width: 24px;
-            text-align: center;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
-        }
-
-        .position-badge.QB {
-            background-color: #e74c3c;
-        }
-
-        .position-badge.RB {
-            background-color: #87ceeb;
-            color: #2c3e50;
-            text-shadow: none;
-        }
-
-        .position-badge.WR {
-            background-color: #2980b9;
-        }
-
-        .position-badge.TE {
-            background-color: #f39c12;
-        }
-
-        .position-badge.FLEX {
-            background: linear-gradient(135deg, #2980b9 0%, #87ceeb 50%, #f39c12 100%);
-        }
-
-        .player-name {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .player-position {
-            color: #7f8c8d;
-            font-size: 0.8rem;
-            margin-left: 8px;
-        }
-
-        .player-points {
-            color: #2c3e50;
-            font-weight: bold;
-            font-size: 0.85rem;
-            margin-left: auto;
-        }
-
-        .player-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        .error {
-            text-align: center;
-            padding: 50px;
-            color: #e74c3c;
-            font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-            .teams-grid {
-                grid-template-columns: 1fr;
-                padding: 15px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .navigation {
-                padding: 15px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .nav-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .nav-button {
-                width: 100%;
-                text-align: center;
-            }
-        }
-        .nav-button-archive {
-            opacity: 0.85;
-            border-style: dashed;
-        }
-        .archive-banner {
-            background: #fff3cd;
-            color: #664d03;
-            border: 1px solid #ffe69c;
-            border-radius: 8px;
-            padding: 10px 16px;
-            margin: 0 0 16px 0;
-            text-align: center;
-            font-weight: 600;
-        }
-        #live-status {
-            font-size: 0.85em;
-            opacity: 0.85;
-            margin: 6px 0 0 0;
-        }
-        #live-status[data-kind="stale"] { color: #ffd166; }
-    </style>
+    <link rel="stylesheet" href="newsprint.css">
+    <script src="newsprint.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -448,7 +53,10 @@
             async loadData() {
                 SleeperLive.start({
                     live: LIVE_VIEW,
-                    onData: (data) => this.applyData(data),
+                    onData: async (data) => {
+                        await this.applyData(data);
+                        Newsprint.update(data);
+                    },
                     onError: () => this.showError(),
                 });
             }
@@ -791,7 +399,7 @@
                         startersContainer.appendChild(playerDiv);
                     });
                 } else {
-                    startersContainer.innerHTML = '<div class="player">No starters available</div>';
+                    startersContainer.innerHTML = '<div class="player empty-roster">Beasts: none</div>';
                 }
 
                 // Add bench players
@@ -802,7 +410,7 @@
                         benchContainer.appendChild(playerDiv);
                     });
                 } else {
-                    benchContainer.innerHTML = '<div class="player">No bench players</div>';
+                    benchContainer.innerHTML = '<div class="player empty-roster">Part timers: none</div>';
                 }
 
                 // Add scrubs (players with 0 starter points)
@@ -813,7 +421,7 @@
                         scrubsContainer.appendChild(playerDiv);
                     });
                 } else {
-                    scrubsContainer.innerHTML = '<div class="player">No scrubs</div>';
+                    scrubsContainer.innerHTML = '<div class="player empty-roster">Scrubs: none</div>';
                 }
 
                 return card;
@@ -887,7 +495,7 @@
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
                 const position = player.isFlex ? 'FLEX' : player.position;
-                const teamText = player.info.team ? ` - ${player.info.team}` : '';
+                const teamText = player.info.team ? `${player.info.team}` : '';
                 
                 const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
                 
@@ -897,7 +505,7 @@
                         <span class="player-name">${player.info.displayName}</span>
                         <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #999; font-size: 0.8em;">(${player.avgPoints.toFixed(1)} avg)</span></span>
+                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #8a8375; font-size: 0.8em;">(${player.avgPoints.toFixed(1)} avg)</span></span>
                 `;
                 
                 return playerDiv;
@@ -908,7 +516,7 @@
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
                 const position = playerInfo.position || '';
-                const teamText = playerInfo.team ? ` - ${playerInfo.team}` : '';
+                const teamText = playerInfo.team ? `${playerInfo.team}` : '';
                 const starterPoints = this.playerPoints[playerId] || 0;
                 const totalPoints = this.totalPlayerPoints[playerId] || 0;
                 
@@ -920,7 +528,7 @@
                         <span class="player-name">${playerInfo.displayName}</span>
                         <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${starterPoints.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
+                    <span class="player-points">${starterPoints.toFixed(1)} <span style="color: #8a8375; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
                 `;
                 
                 return playerDiv;
@@ -931,7 +539,7 @@
                 playerDiv.className = `player ${isStarter ? 'starter' : ''}`;
                 
                 const position = player.isFlex ? 'FLEX' : player.position;
-                const teamText = player.info.team ? ` - ${player.info.team}` : '';
+                const teamText = player.info.team ? `${player.info.team}` : '';
                 const totalPoints = this.totalPlayerPoints[player.id] || 0;
                 
                 const positionBadge = position ? `<span class="position-badge ${position}">${position}</span>` : '';
@@ -942,7 +550,7 @@
                         <span class="player-name">${player.info.displayName}</span>
                         <span class="player-position">${teamText}</span>
                     </div>
-                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #999; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
+                    <span class="player-points">${player.points.toFixed(1)} <span style="color: #8a8375; font-size: 0.8em;">[${totalPoints.toFixed(1)}]</span></span>
                 `;
                 
                 return playerDiv;

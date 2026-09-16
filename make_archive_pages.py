@@ -30,11 +30,13 @@ def archive_page(html: str, year: str) -> str:
         raise ValueError(f'expected exactly one "{year} Season" nav link, found {len(present)}')
 
     replacements = present + [
+        ('href="newsprint.css"', 'href="../newsprint.css"'),
+        ('src="newsprint.js"', 'src="../newsprint.js"'),
         ('const LIVE_VIEW = true;', 'const LIVE_VIEW = false;'),
         ('<script src="sleeper-live.js"></script>', '<script src="../sleeper-live.js"></script>'),
         ('            <p id="league-info">Fetching league information...</p>\n        </div>\n',
          '            <p id="league-info">Fetching league information...</p>\n        </div>\n\n'
-         f'        <div class="archive-banner">📦 {year} Season Archive — final results as of the end of the season. '
+         f'        <div class="archive-banner">{year} Season Archive — final results as of the end of the season. '
          '<a href="../index.html">Go to the current season</a>.</div>\n'),
         ('<title>', f'<title>{year} Archive - '),
     ]

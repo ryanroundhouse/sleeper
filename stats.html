@@ -5,327 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Least Important League - Stats</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .navigation {
-            background: #f8f9fa;
-            padding: 20px 30px;
-            border-bottom: 1px solid #e9ecef;
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-        }
-
-        .nav-button {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-
-        .nav-button.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .nav-button:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            color: #666;
-        }
-
-        .chart-container {
-            padding: 30px;
-            background: white;
-        }
-
-        .chart-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: center;
-        }
-
-        .chart-tab {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .chart-tab.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .chart-tab:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 600px;
-            margin-bottom: 30px;
-        }
-
-        .legend-container {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .legend-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .legend-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .toggle-all-btn {
-            padding: 8px 16px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .toggle-all-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .legend-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            background: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .legend-item:hover {
-            background: #e9ecef;
-        }
-
-        .legend-item.hidden {
-            opacity: 0.5;
-            background: #f8f9fa;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .legend-text {
-            font-weight: 600;
-            color: #2c3e50;
-            flex: 1;
-        }
-
-        .legend-stats {
-            font-size: 0.9rem;
-            color: #666;
-            text-align: right;
-        }
-
-        .error {
-            text-align: center;
-            padding: 50px;
-            color: #e74c3c;
-            font-size: 1.1rem;
-        }
-
-        .stats-summary {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        @media (max-width: 768px) {
-            .chart-wrapper {
-                height: 400px;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .navigation {
-                padding: 15px;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .nav-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .nav-button {
-                width: 100%;
-                text-align: center;
-            }
-
-            .legend-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-summary {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .legend-header {
-                flex-direction: column;
-                gap: 10px;
-                align-items: stretch;
-            }
-
-            .toggle-all-btn {
-                width: 100%;
-            }
-
-            .chart-tabs {
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .chart-tab {
-                width: 100%;
-                text-align: center;
-            }
-        }
-        .nav-button-archive {
-            opacity: 0.85;
-            border-style: dashed;
-        }
-        .archive-banner {
-            background: #fff3cd;
-            color: #664d03;
-            border: 1px solid #ffe69c;
-            border-radius: 8px;
-            padding: 10px 16px;
-            margin: 0 0 16px 0;
-            text-align: center;
-            font-weight: 600;
-        }
-        #live-status {
-            font-size: 0.85em;
-            opacity: 0.85;
-            margin: 6px 0 0 0;
-        }
-        #live-status[data-kind="stale"] { color: #ffd166; }
-    </style>
+    <link rel="stylesheet" href="newsprint.css">
+    <script src="newsprint.js" defer></script>
 </head>
-<body>
+<body class="stats-page">
     <div class="container">
         <div class="header">
             <h1 id="league-name">Loading League...</h1>
@@ -349,19 +32,23 @@
         <div id="stats-container" class="chart-container" style="display: none;">
             <div class="stats-summary" id="stats-summary"></div>
             
+            <div class="chart-heading"><h2>Season breakdown <span>by week</span></h2>
             <div class="chart-tabs">
                 <button class="chart-tab active" data-chart="bar">Total Team Score</button>
                 <button class="chart-tab" data-chart="line">Week by Week</button>
                 <button class="chart-tab" data-chart="cumulative">Week over Time</button>
             </div>
             
+            </div>
+            <div id="scoreboard" class="scoreboard"></div>
             <div class="chart-wrapper">
                 <canvas id="scoresChart"></canvas>
             </div>
             
             <div class="legend-container">
                 <div class="legend-header">
-                    <div class="legend-title">Team Legend (Click to Show/Hide)</div>
+                    <div id="week-key" class="week-key"></div>
+                    <div class="legend-title">Team legend · tap a name to show/hide</div>
                     <button id="toggle-all-btn" class="toggle-all-btn">Deselect All</button>
                 </div>
                 <div class="legend-grid" id="legend-container"></div>
@@ -382,11 +69,7 @@
             constructor() {
                 this.leagueData = null;
                 this.chart = null;
-                this.teamColors = [
-                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF',
-                    '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384',
-                    '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
-                ];
+                this.teamColors = ['#1c1a17', '#6b645a', '#8a8375'];
                 this.hiddenTeams = new Set();
                 this.allTeamsVisible = true;
                 this.currentChartType = 'bar';
@@ -395,7 +78,10 @@
             async loadData() {
                 SleeperLive.start({
                     live: LIVE_VIEW,
-                    onData: (data) => this.applyData(data),
+                    onData: async (data) => {
+                        await this.applyData(data);
+                        Newsprint.update(data);
+                    },
                     onError: () => this.showError(),
                 });
             }
@@ -558,6 +244,73 @@
                 } else if (this.currentChartType === 'cumulative') {
                     this.createCumulativeChart(ctx);
                 }
+                this.renderScoreboard();
+            }
+
+            renderScoreboard() {
+                const container = document.getElementById('stats-container');
+                container.dataset.chart = this.currentChartType;
+                const board = document.getElementById('scoreboard');
+                board.replaceChildren();
+                const teams = Array.from(this.teamData.entries()).sort((a, b) => b[1].totalPoints - a[1].totalPoints);
+                const maximum = Math.max(1, ...teams.map(([, team]) => team.totalPoints));
+                const step = Math.pow(10, Math.floor(Math.log10(maximum))) / 5;
+                const axisMaximum = Math.ceil(maximum / step) * step;
+                const weeks = [...new Set(this.leagueData.weeks.map(w => w.week))].sort((a, b) => a - b);
+                teams.forEach(([id, team], index) => {
+                    const row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = `score-row${index === 0 ? ' score-leader' : ''}${this.hiddenTeams.has(id) ? ' score-hidden' : ''}`;
+                    row.setAttribute('aria-pressed', String(!this.hiddenTeams.has(id)));
+                    const name = document.createElement('span');
+                    name.className = 'score-name';
+                    name.textContent = `${index + 1}  ${team.name}`;
+                    const value = document.createElement('span');
+                    value.className = 'score-value';
+                    value.textContent = team.totalPoints.toFixed(2);
+                    const track = document.createElement('span');
+                    track.className = 'score-track';
+                    const bar = document.createElement('span');
+                    bar.className = 'score-bar';
+                    bar.style.width = `${Math.max(0, team.totalPoints) / axisMaximum * 100}%`;
+                    weeks.forEach(week => {
+                        const points = team.weeks.find(w => w.week === week)?.points || 0;
+                        const segment = document.createElement('span');
+                        segment.className = 'score-segment';
+                        segment.style.flexGrow = Math.max(0, points);
+                        segment.title = `Week ${week}: ${points.toFixed(2)}`;
+                        bar.append(segment);
+                    });
+                    row.title = team.weeks.map(w => `Week ${w.week}: ${w.points.toFixed(2)}`).join(' · ');
+                    const grid = document.createElement('span');
+                    grid.className = 'score-grid';
+                    grid.setAttribute('aria-hidden', 'true');
+                    for (let tick = 0; tick < Math.round(axisMaximum / step); tick++) grid.append(document.createElement('i'));
+                    track.append(grid, bar);
+                    row.append(name, track, value);
+                    row.addEventListener('click', () => this.toggleTeam(id, document.querySelector(`.legend-item[data-roster-id="${id}"]`)));
+                    board.append(row);
+                });
+                const axis = document.createElement('div');
+                axis.className = 'score-axis';
+                axis.setAttribute('aria-hidden', 'true');
+                for (let tick = 0; tick <= Math.round(axisMaximum / step); tick++) {
+                    const label = document.createElement('span');
+                    label.textContent = Number((tick * step).toFixed(2));
+                    axis.append(label);
+                }
+                board.append(axis);
+                const key = document.getElementById('week-key');
+                key.replaceChildren();
+                for (const week of weeks) {
+                    const label = document.createElement('span');
+                    label.textContent = `Week ${week}`;
+                    key.append(label);
+                }
+                const leader = document.createElement('span');
+                leader.className = 'leader-key';
+                leader.textContent = 'Season leader';
+                key.append(leader);
             }
 
             createLineChart(ctx) {
@@ -573,7 +326,7 @@
                 const datasets = [];
                 
                 sortedTeams.forEach(([rosterId, team], colorIndex) => {
-                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    const color = colorIndex === 0 ? '#b3261e' : this.teamColors[(colorIndex - 1) % this.teamColors.length];
                     
                     // Create data points for each week
                     const data = weeks.map(week => {
@@ -585,6 +338,7 @@
                         label: team.name,
                         data: data,
                         borderColor: color,
+                        borderDash: [[], [6, 3], [2, 3], [8, 3, 2, 3]][Math.floor(colorIndex / this.teamColors.length) % 4],
                         backgroundColor: color + '20',
                         borderWidth: 3,
                         fill: false,
@@ -592,7 +346,7 @@
                         pointRadius: 5,
                         pointHoverRadius: 8,
                         pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
+                        pointBorderColor: '#f4eddc',
                         pointBorderWidth: 2,
                         rosterId: rosterId
                     });
@@ -615,7 +369,7 @@
                                     size: 18,
                                     weight: 'bold'
                                 },
-                                color: '#2c3e50'
+                                color: '#1c1a17'
                             },
                             legend: {
                                 display: false // We'll use our custom legend
@@ -623,10 +377,10 @@
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#667eea',
+                                backgroundColor: '#1c1a17',
+                                titleColor: '#f4eddc',
+                                bodyColor: '#f4eddc',
+                                borderColor: '#cfc6b2',
                                 borderWidth: 1,
                                 callbacks: {
                                     title: function(context) {
@@ -653,10 +407,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 }
                             },
                             y: {
@@ -668,10 +422,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 },
                                 beginAtZero: false
                             }
@@ -702,8 +456,7 @@
                 
                 weeks.forEach((week, weekIndex) => {
                     // Generate a color for this week
-                    const hue = (weekIndex * 360 / weeks.length) % 360;
-                    const color = `hsl(${hue}, 70%, 60%)`;
+                    const color = sortedTeams.map((_, index) => index === 0 ? '#b3261e' : '#1c1a17');
                     
                     // Get data for this week across all teams
                     const weekData = sortedTeams.map(([rosterId, team]) => {
@@ -715,7 +468,7 @@
                         label: `Week ${week}`,
                         data: weekData,
                         backgroundColor: color,
-                        borderColor: color,
+                        borderColor: '#f4eddc',
                         borderWidth: 1,
                         week: week
                     });
@@ -742,10 +495,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 }
                             },
                             y: {
@@ -758,10 +511,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 }
                             }
                         },
@@ -773,7 +526,7 @@
                                     size: 18,
                                     weight: 'bold'
                                 },
-                                color: '#2c3e50'
+                                color: '#1c1a17'
                             },
                             legend: {
                                 display: true,
@@ -787,10 +540,10 @@
                                 }
                             },
                             tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#667eea',
+                                backgroundColor: '#1c1a17',
+                                titleColor: '#f4eddc',
+                                bodyColor: '#f4eddc',
+                                borderColor: '#cfc6b2',
                                 borderWidth: 1,
                                 callbacks: {
                                     title: function(context) {
@@ -833,7 +586,7 @@
                 const datasets = [];
                 
                 sortedTeams.forEach(([rosterId, team], colorIndex) => {
-                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    const color = colorIndex === 0 ? '#b3261e' : this.teamColors[(colorIndex - 1) % this.teamColors.length];
                     
                     // Create cumulative data points for each week
                     let cumulativeTotal = 0;
@@ -849,6 +602,7 @@
                         label: team.name,
                         data: data,
                         borderColor: color,
+                        borderDash: [[], [6, 3], [2, 3], [8, 3, 2, 3]][Math.floor(colorIndex / this.teamColors.length) % 4],
                         backgroundColor: color + '20',
                         borderWidth: 3,
                         fill: false,
@@ -856,7 +610,7 @@
                         pointRadius: 5,
                         pointHoverRadius: 8,
                         pointBackgroundColor: color,
-                        pointBorderColor: '#fff',
+                        pointBorderColor: '#f4eddc',
                         pointBorderWidth: 2,
                         rosterId: rosterId
                     });
@@ -879,7 +633,7 @@
                                     size: 18,
                                     weight: 'bold'
                                 },
-                                color: '#2c3e50'
+                                color: '#1c1a17'
                             },
                             legend: {
                                 display: false // We'll use our custom legend
@@ -887,10 +641,10 @@
                             tooltip: {
                                 mode: 'index',
                                 intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: '#667eea',
+                                backgroundColor: '#1c1a17',
+                                titleColor: '#f4eddc',
+                                bodyColor: '#f4eddc',
+                                borderColor: '#cfc6b2',
                                 borderWidth: 1,
                                 callbacks: {
                                     title: function(context) {
@@ -917,10 +671,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 }
                             },
                             y: {
@@ -932,10 +686,10 @@
                                         size: 14,
                                         weight: 'bold'
                                     },
-                                    color: '#2c3e50'
+                                    color: '#1c1a17'
                                 },
                                 grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
+                                    color: '#cfc6b2'
                                 },
                                 beginAtZero: true
                             }
@@ -960,7 +714,7 @@
                 
                 let colorIndex = 0;
                 sortedTeams.forEach(([rosterId, team]) => {
-                    const color = this.teamColors[colorIndex % this.teamColors.length];
+                    const color = colorIndex === 0 ? '#b3261e' : this.teamColors[(colorIndex - 1) % this.teamColors.length];
                     
                     const legendItem = document.createElement('div');
                     legendItem.className = 'legend-item';
@@ -1045,15 +799,15 @@
                 const stats = [
                     {
                         value: avgWeeklyScore.toFixed(1),
-                        label: 'League Average Weekly Score'
+                        label: 'League Average Weekly Score', caption: ''
                     },
                     {
                         value: highestScore.toFixed(1),
-                        label: `Highest Score (${highestTeam}, Week ${highestWeek})`
+                        label: 'Highest Score', caption: highestTeam ? `${highestTeam}, week ${highestWeek}` : 'No scores yet'
                     },
                     {
                         value: lowestScore === Infinity ? '0.0' : lowestScore.toFixed(1),
-                        label: `Lowest Score (${lowestTeam}, Week ${lowestWeek})`
+                        label: 'Lowest Score', caption: lowestTeam ? `${lowestTeam}, week ${lowestWeek}` : 'No completed weeks'
                     }
                 ];
                 
@@ -1063,6 +817,7 @@
                     statCard.innerHTML = `
                         <div class="stat-value">${stat.value}</div>
                         <div class="stat-label">${stat.label}</div>
+                        <div class="stat-caption">${stat.caption}</div>
                     `;
                     container.appendChild(statCard);
                 });
@@ -1091,6 +846,7 @@
                             
                             // Reset hidden teams state
                             this.hiddenTeams.clear();
+                            this.renderScoreboard();
                             this.allTeamsVisible = true;
                             document.getElementById('toggle-all-btn').textContent = 'Deselect All';
                             
@@ -1181,6 +937,7 @@
                 }
                 
                 this.chart.update();
+                this.renderScoreboard();
             }
 
             toggleTeam(rosterId, legendItem) {
@@ -1206,6 +963,7 @@
                         // Update the toggle button state
                         this.updateToggleButtonState();
                         this.chart.update();
+                        this.renderScoreboard();
                     }
                 } else {
                     // Bar chart: hide/show team's data across all weeks
@@ -1241,6 +999,7 @@
                         // Update the toggle button state
                         this.updateToggleButtonState();
                         this.chart.update();
+                        this.renderScoreboard();
                     }
                 }
             }

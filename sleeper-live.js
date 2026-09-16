@@ -247,9 +247,9 @@
         if (!el) {
             const header = document.querySelector('.header');
             if (!header) return null;
-            el = document.createElement('p');
+            el = document.createElement('span');
             el.id = 'live-status';
-            header.appendChild(el);
+            (header.querySelector('.edition-subtitle') || header).appendChild(el);
         }
         return el;
     }
@@ -257,7 +257,9 @@
     function setStatus(text, kind) {
         const el = statusElement();
         if (!el) return;
-        el.textContent = text;
+        el.textContent = kind === 'live' ? 'Live' : text;
+        el.title = text;
+        el.setAttribute('aria-label', text);
         el.dataset.kind = kind;
     }
 
@@ -282,11 +284,11 @@
         }
 
         if (!live) {
-            setStatus(`📦 Final snapshot from ${formatTime(snapshot.updatedAt)}`, 'snapshot');
+            setStatus(`Final snapshot from ${formatTime(snapshot.updatedAt)}`, 'snapshot');
             return;
         }
 
-        if (!snapshot) setStatus('⏳ Loading live data…', 'loading');
+        if (!snapshot) setStatus('Loading live data…', 'loading');
         const leagueId = snapshot ? snapshot.web.league_info.league_id : opts.leagueId;
         if (!leagueId) { onError && onError(new Error('No league id available')); return; }
 
@@ -309,15 +311,15 @@
                 lastWeb = data.web;
                 lastLive = data;
                 await onData(data);
-                setStatus(`🟢 Live · updated ${formatTime(data.updatedAt)}`, 'live');
+                setStatus(`Live · updated ${formatTime(data.updatedAt)}`, 'live');
                 delay = backoff.next(changed);
             } catch (err) {
                 console.warn('Live data unavailable:', err);
                 if (lastLive) {
-                    setStatus(`⚠️ Live unavailable · showing data from ${formatTime(lastLive.updatedAt)}`, 'stale');
+                    setStatus(`Live unavailable · showing data from ${formatTime(lastLive.updatedAt)}`, 'stale');
                     delay = backoff.next(false);
                 } else if (snapshot) {
-                    setStatus(`⚠️ Live unavailable · showing snapshot from ${formatTime(snapshot.updatedAt)}`, 'stale');
+                    setStatus(`Live unavailable · showing snapshot from ${formatTime(snapshot.updatedAt)}`, 'stale');
                     delay = backoff.next(false);
                 } else {
                     onError && onError(err); // nothing to show; stop polling
