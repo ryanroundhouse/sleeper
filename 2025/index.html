@@ -429,6 +429,15 @@
     <script>
         const PLAYERS_FILE = '../nfl_players.json';
 
+        // Sleeper stores season totals as an integer part plus a separate
+        // "<key>_decimal" field (e.g. fpts: 92, fpts_decimal: 66 => 92.66).
+        function sleeperPoints(settings, key) {
+            if (!settings) return 0;
+            const whole = settings[key] || 0;
+            const decimal = settings[`${key}_decimal`] || 0;
+            return Math.round((whole + decimal / 100) * 100) / 100;
+        }
+
         class LeagueViewer {
             constructor() {
                 this.players = {};
@@ -563,7 +572,7 @@
                     allTeams.push({
                         type: 'regular',
                         roster: roster,
-                        points: roster.settings?.fpts || 0
+                        points: sleeperPoints(roster.settings, 'fpts')
                     });
                 });
 
@@ -744,8 +753,8 @@
                 const wins = roster.settings?.wins || 0;
                 const losses = roster.settings?.losses || 0;
                 const ties = roster.settings?.ties || 0;
-                const points = roster.settings?.fpts || 0;
-                const pointsAgainst = roster.settings?.fpts_against || 0;
+                const points = sleeperPoints(roster.settings, 'fpts');
+                const pointsAgainst = sleeperPoints(roster.settings, 'fpts_against');
 
                 const card = document.createElement('div');
                 card.className = 'team-card';
