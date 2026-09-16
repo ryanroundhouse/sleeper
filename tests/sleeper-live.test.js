@@ -77,3 +77,9 @@ test('hasScoresChanged compares week totals only', () => {
     assert.equal(live.hasScoresChanged(a, diff), true);
     assert.equal(live.hasScoresChanged(null, same), true);
 });
+
+test('weekHasScores is false until at least one team has points', () => {
+    assert.equal(live.weekHasScores({ week: 2, matchups: [{ total_points: 0 }, { total_points: 0 }] }), false);
+    assert.equal(live.weekHasScores({ week: 2, matchups: [{ total_points: 0 }, { total_points: 3.5 }] }), true);
+    assert.equal(live.weekHasScores({ week: 2, matchups: [] }), false);
+});

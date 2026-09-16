@@ -123,6 +123,11 @@
         return unknown;
     }
 
+    /** A week counts once at least one team has scored; before kickoff every total is zero. */
+    function weekHasScores(week) {
+        return (week.matchups || []).some((m) => (m.total_points || 0) > 0);
+    }
+
     function scoreSignature(web) {
         if (!web) return null;
         return JSON.stringify((web.weeks || []).map((w) => [w.week, (w.matchups || []).map((m) => [m.roster_id, m.total_points])]));
@@ -338,7 +343,7 @@
     }
 
     return {
-        computePointsFor, createBackoff, formatWeb, unknownPlayerIds, hasScoresChanged,
+        computePointsFor, createBackoff, formatWeb, unknownPlayerIds, hasScoresChanged, weekHasScores,
         loadSnapshot, loadLive, start,
     };
 });

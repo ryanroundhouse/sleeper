@@ -420,8 +420,10 @@
                     });
                 });
 
-                // Analyze each week
-                this.leagueData.weeks.forEach(weekData => {
+                // Analyze each week that has been played. The current week is in
+                // the data before kickoff with every score at zero; ranking it
+                // would hand out medals on a 14-way tie.
+                this.leagueData.weeks.filter(SleeperLive.weekHasScores).forEach(weekData => {
                     // Calculate optimal points for each team in this week
                     const weeklyScores = weekData.matchups.map(matchup => {
                         const playerData = this.organizePlayersByPerformance(matchup);
