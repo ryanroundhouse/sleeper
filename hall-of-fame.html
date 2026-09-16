@@ -310,6 +310,12 @@
             text-align: center;
             font-weight: 600;
         }
+        #live-status {
+            font-size: 0.85em;
+            opacity: 0.85;
+            margin: 6px 0 0 0;
+        }
+        #live-status[data-kind="stale"] { color: #ffd166; }
     </style>
 </head>
 <body>
@@ -356,7 +362,11 @@
         </div>
     </div>
 
+    <script src="sleeper-live.js"></script>
     <script>
+        // Set to false for archived seasons (see make_archive_pages.py)
+        const LIVE_VIEW = true;
+
         class HallOfFameViewer {
             constructor() {
                 this.leagueData = null;
@@ -365,28 +375,22 @@
             }
 
             async loadData() {
-                try {
-                    const response = await fetch('web_interface_data.json');
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    this.leagueData = await response.json();
-                    
-                    // Update header
-                    document.getElementById('league-name').textContent = this.leagueData.league_info.name;
-                    document.getElementById('league-info').textContent = 
-                        `Season ${this.leagueData.league_info.season} • ${this.leagueData.league_info.total_rosters} Teams • Current Week: ${this.leagueData.league_info.current_week}`;
-                    
-                    // Analyze weekly performance
-                    this.analyzeWeeklyPerformance();
-                    
-                    // Display the results
-                    this.displayResults();
-                    
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                    this.showError();
-                }
+                SleeperLive.start({
+                    live: LIVE_VIEW,
+                    onData: (data) => this.applyData(data),
+                    onError: () => this.showError(),
+                });
+            }
+
+            applyData({ web }) {
+                this.leagueData = web;
+
+                document.getElementById('league-name').textContent = web.league_info.name;
+                document.getElementById('league-info').textContent =
+                    `Season ${web.league_info.season} • ${web.league_info.total_rosters} Teams • Current Week: ${web.league_info.current_week}`;
+
+                this.analyzeWeeklyPerformance();
+                this.displayResults();
             }
 
             analyzeWeeklyPerformance() {

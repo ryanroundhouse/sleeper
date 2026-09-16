@@ -394,6 +394,12 @@
             text-align: center;
             font-weight: 600;
         }
+        #live-status {
+            font-size: 0.85em;
+            opacity: 0.85;
+            margin: 6px 0 0 0;
+        }
+        #live-status[data-kind="stale"] { color: #ffd166; }
     </style>
 </head>
 <body>
@@ -424,17 +430,10 @@
         </div>
     </div>
 
+    <script src="sleeper-live.js"></script>
     <script>
-        const PLAYERS_FILE = 'nfl_players.json';
-
-        // Sleeper stores season totals as an integer part plus a separate
-        // "<key>_decimal" field (e.g. fpts: 92, fpts_decimal: 66 => 92.66).
-        function sleeperPoints(settings, key) {
-            if (!settings) return 0;
-            const whole = settings[key] || 0;
-            const decimal = settings[`${key}_decimal`] || 0;
-            return Math.round((whole + decimal / 100) * 100) / 100;
-        }
+        // Set to false for archived seasons (see make_archive_pages.py)
+        const LIVE_VIEW = true;
 
         class LeagueViewer {
             constructor() {
@@ -447,46 +446,33 @@
             }
 
             async loadData() {
-                try {
-                    // Load all required data from local JSON files
-                    // web_interface_data.json tells us which league ID the other files use
-                    const webDataResponse = await fetch('web_interface_data.json');
-                    if (!webDataResponse.ok) throw new Error('Failed to load web_interface_data.json');
-                    const webData = await webDataResponse.json();
-                    const leagueId = webData.league_info.league_id;
+                SleeperLive.start({
+                    live: LIVE_VIEW,
+                    onData: (data) => this.applyData(data),
+                    onError: () => this.showError(),
+                });
+            }
 
-                    const [playersResponse, leagueResponse, usersResponse, rostersResponse] = await Promise.all([
-                        fetch(PLAYERS_FILE),
-                        fetch(`league_${leagueId}_info.json`),
-                        fetch(`league_${leagueId}_users.json`),
-                        fetch(`league_${leagueId}_rosters.json`)
-                    ]);
+            async applyData({ web, leagueInfo, users, rosters }) {
+                this.players = web.players || {};
+                this.leagueInfo = leagueInfo;
+                this.users = users;
+                this.rosters = rosters;
+                this.pointsFor = SleeperLive.computePointsFor(web.weeks);
 
-                    if (!playersResponse.ok || !leagueResponse.ok || !usersResponse.ok || !rostersResponse.ok) {
-                        throw new Error('Failed to load local JSON files');
-                    }
-
-                    this.players = await playersResponse.json();
-                    this.leagueInfo = await leagueResponse.json();
-                    this.users = await usersResponse.json();
-                    this.rosters = await rostersResponse.json();
-                    
-                    // Try to load unrostered players season data
+                // Best unowned team data comes from the daily snapshot; load it once.
+                if (this.unrosteredPlayers === null && !this.unrosteredLoadAttempted) {
+                    this.unrosteredLoadAttempted = true;
                     try {
-                        const unrosteredResponse = await fetch(`league_${this.leagueInfo.league_id}_unrostered_season_stats.json`);
-                        if (unrosteredResponse.ok) {
-                            this.unrosteredPlayers = await unrosteredResponse.json();
-                        }
+                        const response = await fetch(`league_${web.league_info.league_id}_unrostered_season_stats.json`);
+                        if (response.ok) this.unrosteredPlayers = await response.json();
                     } catch (error) {
                         console.log('Unrostered players season data not available:', error);
                     }
-                    
-                    this.calculatePlayerPoints(webData);
-                    this.displayLeague();
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                    this.showError();
                 }
+
+                this.calculatePlayerPoints(web);
+                this.displayLeague();
             }
 
             getPlayerName(playerId) {
@@ -494,13 +480,12 @@
                 
                 const player = this.players[playerId];
                 if (player) {
-                    const position = player.position || '';
-                    const team = player.team || '';
+                    const name = player.name || 'Unknown Player';
                     return {
-                        name: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player',
-                        position: position,
-                        team: team,
-                        displayName: `${player.first_name || ''} ${player.last_name || ''}`.trim() || 'Unknown Player'
+                        name: name,
+                        position: player.position || '',
+                        team: player.team || '',
+                        displayName: name
                     };
                 }
                 return {
@@ -570,7 +555,7 @@
                     allTeams.push({
                         type: 'regular',
                         roster: roster,
-                        points: sleeperPoints(roster.settings, 'fpts')
+                        points: this.pointsFor[roster.roster_id] || 0
                     });
                 });
 
@@ -751,8 +736,7 @@
                 const wins = roster.settings?.wins || 0;
                 const losses = roster.settings?.losses || 0;
                 const ties = roster.settings?.ties || 0;
-                const points = sleeperPoints(roster.settings, 'fpts');
-                const pointsAgainst = sleeperPoints(roster.settings, 'fpts_against');
+                const points = this.pointsFor[roster.roster_id] || 0;
 
                 const card = document.createElement('div');
                 card.className = 'team-card';

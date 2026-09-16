@@ -124,12 +124,11 @@ fi
 echo "⏰ Setting up cron jobs..."
 
 # Create cron job entries for specific times
+# Live scores come straight from the Sleeper API in the browser, so the job only
+# refreshes the snapshot (fallback data, player names, best unowned team).
 CRON_JOBS=(
-    "0 23 * * 1 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Monday 11pm"
-    "0 16 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 4pm"
-    "0 20 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 8pm"
-    "0 23 * * 0 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Sunday 11pm"
-    "0 23 * * 4 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Thursday 11pm"
+    "0 6 * * * $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1   # daily 6am"
+    "0 13 * * 2 $SCRIPT_DIR/update_league_data.sh >/dev/null 2>&1  # Tuesday 1pm, after Sleeper finalizes the week"
 )
 
 # Remove any existing cron jobs for this script

@@ -420,6 +420,12 @@
             text-align: center;
             font-weight: 600;
         }
+        #live-status {
+            font-size: 0.85em;
+            opacity: 0.85;
+            margin: 6px 0 0 0;
+        }
+        #live-status[data-kind="stale"] { color: #ffd166; }
     </style>
 </head>
 <body>
@@ -456,7 +462,11 @@
         </div>
     </div>
 
+    <script src="sleeper-live.js"></script>
     <script>
+        // Set to false for archived seasons (see make_archive_pages.py)
+        const LIVE_VIEW = true;
+
         class WeeklyLeagueViewer {
             constructor() {
                 this.leagueData = null;
@@ -465,46 +475,44 @@
             }
 
             async loadData() {
-                try {
-                    const response = await fetch('web_interface_data.json');
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    this.leagueData = await response.json();
-                    
-                    // Try to load unrostered players season data
+                SleeperLive.start({
+                    live: LIVE_VIEW,
+                    onData: (data) => this.applyData(data),
+                    onError: () => this.showError(),
+                });
+            }
+
+            async applyData({ web }) {
+                const firstLoad = this.leagueData === null;
+                this.leagueData = web;
+
+                // Best unowned team data comes from the daily snapshot; load it once.
+                if (firstLoad) {
                     try {
-                        const unrosteredResponse = await fetch(`league_${this.leagueData.league_info.league_id}_unrostered_season_stats.json`);
-                        if (unrosteredResponse.ok) {
-                            this.unrosteredPlayers = await unrosteredResponse.json();
-                        }
+                        const response = await fetch(`league_${web.league_info.league_id}_unrostered_season_stats.json`);
+                        if (response.ok) this.unrosteredPlayers = await response.json();
                     } catch (error) {
                         console.log('Unrostered players season data not available:', error);
                     }
-                    
-                    // Update header
-                    document.getElementById('league-name').textContent = this.leagueData.league_info.name;
-                    document.getElementById('league-info').textContent = 
-                        `Season ${this.leagueData.league_info.season} • ${this.leagueData.league_info.total_rosters} Teams • Current Week: ${this.leagueData.league_info.current_week}`;
-                    
-                    // Populate week selector
-                    this.populateWeekSelector();
-                    
-                    // Set default week to current week
-                    this.currentWeek = this.leagueData.league_info.current_week;
-                    document.getElementById('week-select').value = this.currentWeek;
-                    
-                    // Display data for current week
-                    this.displayWeekData(this.currentWeek);
-                    
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                    this.showError();
                 }
+
+                document.getElementById('league-name').textContent = web.league_info.name;
+                document.getElementById('league-info').textContent =
+                    `Season ${web.league_info.season} • ${web.league_info.total_rosters} Teams • Current Week: ${web.league_info.current_week}`;
+
+                this.populateWeekSelector();
+                if (firstLoad || !web.weeks.some(w => w.week === this.currentWeek)) {
+                    this.currentWeek = web.league_info.current_week;
+                }
+                document.getElementById('week-select').value = this.currentWeek;
+                this.displayWeekData(this.currentWeek);
             }
 
             populateWeekSelector() {
                 const select = document.getElementById('week-select');
+                const wanted = this.leagueData.weeks.map(w => String(w.week)).join(',');
+                const existing = Array.from(select.options).map(o => o.value).join(',');
+                if (wanted === existing) return; // keep the user's selection on live refreshes
                 select.innerHTML = '';
                 
                 this.leagueData.weeks.forEach(weekData => {

@@ -22,7 +22,7 @@
     18
   ],
   "total_unrostered_players": 647,
-  "generated_at": "2026-09-13 14:26:55",
+  "generated_at": "2026-09-15 21:22:14",
   "players": [
     {
       "player_id": "421",
@@ -60679,7 +60679,7 @@
       "player_info": {
         "name": "Sterling Shepard",
         "position": "WR",
-        "team": null,
+        "team": "NYJ",
         "years_exp": 10,
         "fantasy_positions": [
           "WR"
@@ -84300,7 +84300,7 @@
       "player_info": {
         "name": "Tyler Johnson",
         "position": "WR",
-        "team": null,
+        "team": "NYJ",
         "years_exp": 6,
         "fantasy_positions": [
           "WR"
@@ -87869,7 +87869,7 @@
       "player_info": {
         "name": "Lil'Jordan Humphrey",
         "position": "WR",
-        "team": "DEN",
+        "team": null,
         "years_exp": 7,
         "fantasy_positions": [
           "WR"
@@ -117984,7 +117984,7 @@
       "player_info": {
         "name": "Phil Mafah",
         "position": "RB",
-        "team": null,
+        "team": "NYG",
         "years_exp": 1,
         "fantasy_positions": [
           "RB"
@@ -118351,7 +118351,7 @@
       "player_info": {
         "name": "Josiah Deguara",
         "position": "TE",
-        "team": null,
+        "team": "PHI",
         "years_exp": 6,
         "fantasy_positions": [
           "TE"
@@ -119838,7 +119838,7 @@
       "player_info": {
         "name": "Gage Larvadain",
         "position": "WR",
-        "team": null,
+        "team": "BAL",
         "years_exp": 1,
         "fantasy_positions": [
           "WR"
@@ -123102,7 +123102,7 @@
       "player_info": {
         "name": "Hassan Haskins",
         "position": "RB",
-        "team": "NE",
+        "team": null,
         "years_exp": 4,
         "fantasy_positions": [
           "RB"
@@ -134119,7 +134119,7 @@
       "player_info": {
         "name": "Tyler Goodson",
         "position": "RB",
-        "team": "ATL",
+        "team": "DAL",
         "years_exp": 4,
         "fantasy_positions": [
           "RB"

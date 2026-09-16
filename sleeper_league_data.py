@@ -15,7 +15,8 @@ Usage: python sleeper_league_data.py <league_id> [output_dir]
 
 Pass an output_dir (e.g. "2025") to archive a completed season into a
 subdirectory. Archived seasons use the league's final week and share the
-root nfl_players.json instead of writing their own copy.
+embedded player subset in web_interface_data.json; the full NFL player
+database is never written to disk.
 """
 
 import requests
@@ -24,6 +25,7 @@ import sys
 import os
 from typing import Dict, List, Optional
 import time
+from datetime import datetime, timezone
 
 
 class SleeperAPI:
@@ -105,6 +107,37 @@ class SleeperAPI:
             print(f"Fetching matchups for week {week}...")
             matchups_by_week[week] = self.get_league_matchups(league_id, week)
         return matchups_by_week
+
+
+def resolve_current_week(league_info: Dict, nfl_state: Optional[Dict]) -> int:
+    """Week to fetch through.
+
+    A live league follows the NFL state. A completed or previous-season league
+    is frozen at its final scored week, whatever the live NFL week says.
+    """
+    nfl_week = nfl_state.get('week', 1) if nfl_state else 1
+    nfl_season = str(nfl_state.get('season')) if nfl_state else None
+    league_season = str(league_info.get('season'))
+    is_frozen = league_info.get('status') == 'complete' or (nfl_season is not None and league_season != nfl_season)
+    if not is_frozen:
+        return nfl_week
+    settings = league_info.get('settings', {})
+    return settings.get('last_scored_leg') or settings.get('leg') or nfl_week
+
+
+def build_player_subset(players_data: Dict, player_ids) -> Dict:
+    """Trim the full NFL player database down to the ids the pages need."""
+    subset = {}
+    for player_id in player_ids:
+        info = players_data.get(player_id)
+        if not info:
+            continue
+        subset[player_id] = {
+            'name': f"{info.get('first_name', '')} {info.get('last_name', '')}".strip(),
+            'position': info.get('position', 'N/A'),
+            'team': info.get('team', 'N/A'),
+        }
+    return subset
 
 
 def get_rostered_players(rosters_data: List[Dict]) -> set:
@@ -208,8 +241,16 @@ def save_unrostered_players_season_stats(unrostered_stats: Dict, league_id: str,
     return filename
 
 
-def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players_data: Dict, users_data: List[Dict], rosters_data: List[Dict], league_info: Dict, current_week: int, league_id: str) -> None:
-    """Save formatted data for web interface consumption."""
+def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players_data: Dict, users_data: List[Dict], rosters_data: List[Dict], league_info: Dict, current_week: int, league_id: str, extra_player_ids=None) -> None:
+    """Save formatted data for web interface consumption.
+
+    The embedded ``players`` map is the only player database the pages ship
+    with: everyone who appears in a matchup, everyone currently rostered, and
+    any ``extra_player_ids`` (the unrostered players with season stats).
+    """
+    needed_player_ids = set(extra_player_ids or [])
+    for roster in rosters_data:
+        needed_player_ids.update(roster.get('players') or [])
     
     # Create roster to user mapping
     roster_to_user = {}
@@ -243,7 +284,7 @@ def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players
             
             # Calculate total points from starters only
             starters_points = matchup.get('starters_points', [])
-            total_starters_points = sum(starters_points) if starters_points else 0
+            total_starters_points = round(sum(starters_points), 2) if starters_points else 0
             
             matchup_data = {
                 'roster_id': roster_id,
@@ -256,27 +297,24 @@ def save_formatted_data_for_web(matchups_by_week: Dict[int, List[Dict]], players
                 'matchup_id': matchup.get('matchup_id')
             }
             
-            # Add player details to global players dict
-            for player_id, points in matchup.get('players_points', {}).items():
-                if player_id not in formatted_data['players'] and player_id in players_data:
-                    player_info = players_data[player_id]
-                    formatted_data['players'][player_id] = {
-                        'name': f"{player_info.get('first_name', '')} {player_info.get('last_name', '')}".strip(),
-                        'position': player_info.get('position', 'N/A'),
-                        'team': player_info.get('team', 'N/A')
-                    }
-            
+            needed_player_ids.update(matchup.get('players_points', {}).keys())
+            needed_player_ids.update(matchup.get('starters') or [])
+
             week_data['matchups'].append(matchup_data)
         
         formatted_data['weeks'].append(week_data)
     
+    formatted_data['players'] = build_player_subset(players_data, needed_player_ids)
+
     # Add league info to formatted data
     formatted_data['league_info'] = {
         'name': league_info.get('name', 'Unknown League'),
         'league_id': league_id,
         'season': league_info.get('season'),
+        'status': league_info.get('status'),
         'current_week': current_week,
-        'total_rosters': league_info.get('total_rosters')
+        'total_rosters': league_info.get('total_rosters'),
+        'snapshot_time': datetime.now(timezone.utc).isoformat(timespec='seconds')
     }
     
     # Save formatted data for web interface
@@ -403,7 +441,6 @@ def main():
     # Get NFL state to understand current week
     print("Getting NFL state...")
     nfl_state = api.get_nfl_state()
-    current_week = nfl_state.get('week', 1) if nfl_state else 1
     
     # Get all players data
     print("Fetching all NFL players data...")
@@ -418,15 +455,9 @@ def main():
         print("Please check that the league ID is correct and the league exists.")
         sys.exit(1)
 
-    # A completed / previous-season league is frozen at its final scored week,
-    # regardless of what the live NFL state says the current week is.
-    nfl_season = str(nfl_state.get('season')) if nfl_state else None
-    league_season = str(league_info.get('season'))
-    is_archived = league_info.get('status') == 'complete' or (nfl_season and league_season != nfl_season)
-    if is_archived:
-        settings = league_info.get('settings', {})
-        current_week = settings.get('last_scored_leg') or settings.get('leg') or current_week
-        print(f"League season {league_season} is complete; using final week {current_week}")
+    current_week = resolve_current_week(league_info, nfl_state)
+    if nfl_state and current_week != nfl_state.get('week'):
+        print(f"League season {league_info.get('season')} is complete; using final week {current_week}")
     
     print("Fetching rosters...")
     rosters = api.get_league_rosters(league_id)
@@ -503,13 +534,6 @@ def main():
             json.dump(nfl_state, f, indent=2)
         output_files['NFL State'] = filename
     
-    if players_data and not output_dir:
-        # Archived seasons share the root nfl_players.json (17MB) via ../
-        filename = f"nfl_players.json"
-        with open(filename, 'w') as f:
-            json.dump(players_data, f, indent=2)
-        output_files['NFL Players'] = filename
-    
     # Display output files
     print("\n" + "=" * 60)
     print("OUTPUT FILES CREATED:")
@@ -520,21 +544,8 @@ def main():
     print(f"\nAll data has been saved to JSON files for detailed analysis.")
     print("You can open these files to explore the complete league data structure.")
     
-    # Save formatted data for web interface
-    if players_data and users and rosters and matchups_by_week:
-        print("\nPreparing formatted data for web interface...")
-        save_formatted_data_for_web(matchups_by_week, players_data, users, rosters, league_info, current_week, league_id)
-        
-        print("\n" + "=" * 60)
-        print("WEB INTERFACE READY")
-        print("=" * 60)
-        print("You can now open index.html or sleeper_web_interface.html in your browser")
-        print("to view the league data. The files will work as static HTML pages.")
-        print("\nTo serve the files locally, you can use:")
-        print("  python3 -m http.server 8080")
-        print("  Then visit: http://localhost:8080")
-    
     # Fetch and process unrostered players season stats
+    unrostered_stats = {}
     if players_data and rosters:
         print("\n" + "=" * 60)
         print("FETCHING UNROSTERED PLAYERS SEASON STATS")
@@ -585,6 +596,15 @@ def main():
                 print("No unrostered players found with season fantasy stats.")
         else:
             print("Failed to fetch weekly stats data for any week.")
+
+    # Save formatted data for web interface (last, so the embedded player
+    # subset can include the unrostered players with stats)
+    if players_data and users and rosters and matchups_by_week:
+        print("\nPreparing formatted data for web interface...")
+        save_formatted_data_for_web(matchups_by_week, players_data, users, rosters, league_info,
+                                    current_week, league_id, extra_player_ids=unrostered_stats.keys())
+        print("\nWEB INTERFACE READY: open index.html via a local web server, e.g.")
+        print("  python3 -m http.server 8080")
 
 
 if __name__ == "__main__":

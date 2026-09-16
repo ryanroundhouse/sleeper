@@ -36,6 +36,9 @@ MANIFEST
 
 # League data JSON files are intentionally tracked: the static site needs them
 # (including the archived seasons under e.g. 2025/).
+# The full NFL player database is never committed: the pages ship a trimmed
+# subset inside web_interface_data.json and fetch the rest from Sleeper lazily.
+nfl_players.json
 
 # IDE and editor files
 .vscode/
@@ -65,10 +68,6 @@ Thumbs.db
 *.backup
 *.orig
 
-# Test files
-test_*.py
-*_test.py
-tests/
 
 # Coverage reports
 htmlcov/

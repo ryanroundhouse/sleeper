@@ -11,28 +11,42 @@ A comprehensive tool to fetch, store, and display Sleeper fantasy football leagu
 - **Dual Interface Navigation**: Switch between detailed player points and team roster views
 - **Static HTML Files**: Pure static files that work with any web server
 - **Simple Server Script**: Included shell script for easy local serving
-- **Offline Capability**: All data stored locally in JSON files
+- **Live Scores**: Pages read straight from the Sleeper API and keep polling during games
+- **Snapshot Fallback**: The last committed snapshot is shown when Sleeper cannot be reached
 - **Real Player Names**: Displays actual player names, positions, and teams
 - **Multi-week Data**: Fetches all weeks from 1 through current week
 
-## 📋 What Data Gets Updated
+## ⚡ Live View
 
-The script fetches and updates the following data each time it runs:
+The pages read live data straight from the Sleeper API when opened, using the
+shared `sleeper-live.js` loader. Matchups, rosters, users and the NFL state are
+fetched on load, and the page keeps polling: every minute while scores are
+changing, every five minutes once two polls in a row see no change. Points For
+is the sum of starter points across the season's matchups, so it is live during
+games and never waits for Sleeper's Tuesday finalization.
 
-### **Always Updated (Changes Frequently)**
-- **Team Standings** - Wins, losses, points for/against
-- **Weekly Matchups** - Player points and scoring data for all weeks (1 through current week)
-- **Roster Changes** - Player adds/drops, waiver moves
-- **NFL State** - Current week, season status
+The header shows where the numbers came from:
 
-### **Occasionally Updated**
-- **League Settings** - Scoring changes, roster positions
-- **User Information** - Team names, display names
-- **Player Database** - New players, team changes, injury status
+- 🟢 **Live · updated …** - straight from Sleeper
+- ⚠️ **Live unavailable · showing snapshot from …** - Sleeper could not be reached, so the last committed snapshot is shown
+- 📦 **Final snapshot from …** - an archived season, which never goes live
 
-### **Static After Draft**
-- **Draft Information** - Pick order, draft results (only changes if redraft)
-- **League Basic Info** - League name, total teams (rarely changes)
+See `docs/adr/0001-live-view-from-sleeper-api.md` for why.
+
+## 📋 What the Snapshot Contains
+
+`sleeper_league_data.py` still writes a snapshot each time it runs. Live view
+falls back to it, it carries the trimmed player-name subset the pages need, and
+it is what gets frozen when a season is archived.
+
+- **web_interface_data.json** - every scored week's matchups, team names, and a player subset (everyone rostered, in a matchup, or unrostered with stats)
+- **league_XXXX_info / rosters / users .json** - league configuration and current rosters
+- **league_XXXX_unrostered_season_stats.json** - season totals for unrostered players, used for the best unowned team
+- **league_XXXX_draft_*.json, nfl_state.json** - draft results and current NFL week
+
+The full NFL player database (19 MB) is fetched into memory each run but never
+written to disk or committed. A page that meets a player id missing from the
+subset fetches Sleeper's copy lazily and caches it in the browser for a day.
 
 ## 📦 Archived Seasons
 
@@ -43,13 +57,13 @@ copies of the four HTML pages and final data files. The main pages link to them 
 To archive a finished season (Sleeper gives each season a new league ID):
 
 ```bash
-python sleeper_league_data.py <OLD_LEAGUE_ID> 2025
-cp index.html weekly.html stats.html hall-of-fame.html 2025/   # then adjust links as in 2025/
+python sleeper_league_data.py <OLD_LEAGUE_ID> 2025   # final snapshot into 2025/
+python make_archive_pages.py 2025                     # archive copies of the four pages
 ```
 
 Then point `SLEEPER_LEAGUE_ID` in `.env`, `update_league_data.sh`, and `setup_cron.sh` at
-the new season's league ID. Archived seasons read `../nfl_players.json` rather than keeping
-their own 17MB copy.
+the new season's league ID, and add a "2025 Season" nav button to the four root pages.
+Archived pages load `../sleeper-live.js` with live view switched off.
 
 ## 🚀 Quick Start
 
@@ -135,10 +149,12 @@ Since the files are now static HTML, you can serve them with any web server (Apa
 
 #### Web Interface Features
 
-The interface includes two main views:
+The site has four pages, all live:
 
-- **Team Rosters** (`index.html`): Complete roster breakdowns and standings
-- **Player Points** (`sleeper_web_interface.html`): Week-by-week analysis with dropdown selection
+- **Season Results** (`index.html`): standings by Points For with full rosters and the best unowned team
+- **Weekly Results** (`weekly.html`): each week's matchups with a week selector
+- **Stats** (`stats.html`): team scoring charts over the season
+- **Hall of Fame** (`hall-of-fame.html`): weekly podium finishes and the closet of shame
 
 **Features:**
 - **Navigation**: Switch between views using the navigation buttons
@@ -147,57 +163,18 @@ The interface includes two main views:
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Static Files**: No server-side processing required
 
-## 🔄 Scheduling Automatic Updates
+## 🔄 Scheduling Snapshots
 
-**Current Status**: The data fetching script does NOT automatically run on a schedule. You need to run it manually each time you want updated data.
+Live scores do not need the job at all. The snapshot only needs refreshing a
+couple of times a week, and `setup_cron.sh` installs exactly that:
 
-### Option 1: Manual Updates
-Run the data fetching script whenever you want fresh data:
-```bash
-# With command line argument
-python sleeper_league_data.py YOUR_LEAGUE_ID
-
-# Or with .env file (recommended)
-python sleeper_league_data.py
+```
+0 6 * * *   update_league_data.sh   # daily 6am
+0 13 * * 2  update_league_data.sh   # Tuesday 1pm, after Sleeper finalizes the week
 ```
 
-After fetching new data, the web interface will automatically show the updated information when you refresh your browser.
-
-### Option 2: Set Up Automated Scheduling
-
-#### On macOS/Linux (using cron):
-
-1. **Edit your crontab:**
-   ```bash
-   crontab -e
-   ```
-
-2. **Add a scheduled job** (example: update data every hour during season):
-   ```bash
-   # Update league data every hour from September through January (using .env file)
-   0 * * 9-12,1 * cd /path/to/sleeper && source venv/bin/activate && python sleeper_league_data.py
-   
-   # Or update every 30 minutes on game days (Sunday/Monday/Thursday)
-   */30 * * * 0,1,4 cd /path/to/sleeper && source venv/bin/activate && python sleeper_league_data.py
-   
-   # Alternative: using command line argument (if no .env file)
-   0 * * 9-12,1 * cd /path/to/sleeper && source venv/bin/activate && python sleeper_league_data.py YOUR_LEAGUE_ID
-   ```
-
-#### On Windows (using Task Scheduler):
-
-1. Open Task Scheduler
-2. Create Basic Task
-3. Set trigger (e.g., daily at specific times)
-4. Set action to run: `python sleeper_league_data.py` (if using .env file) or `python sleeper_league_data.py YOUR_LEAGUE_ID`
-5. Set start directory to your sleeper folder
-
-### Recommended Update Frequency
-
-- **During Games**: Every 15-30 minutes (for live scoring)
-- **Regular Season**: 2-3 times per day
-- **Off-season**: Once per day or less
-- **Draft Day**: Every few minutes during active drafting
+`update_league_data.sh` takes a snapshot, commits the changed files and pushes. Run `python sleeper_league_data.py` by hand any time you want a fresh
+snapshot sooner.
 
 ## 📁 File Structure
 
@@ -205,20 +182,26 @@ After running the script, you'll have these files:
 
 ```
 sleeper/
-├── sleeper_league_data.py          # Main script with built-in web server
-├── sleeper_web_interface.html      # Player points interface (served by script)
-├── index.html                      # Team rosters interface (served by script)
+├── sleeper_league_data.py          # Writes the snapshot
+├── make_archive_pages.py           # Builds an archived season's pages
+├── sleeper-live.js                 # Shared loader: snapshot + live view + polling
+├── index.html / weekly.html / stats.html / hall-of-fame.html
+├── 2025/                           # Archived season: pages + final snapshot
+├── tests/                          # python -m unittest; node --test tests/sleeper-live.test.js
+├── docs/adr/                       # Architecture decision records
+├── CONTEXT.md                      # Project vocabulary
 ├── README.md                       # This file
-├── .env                           # Configuration file (create this)
-├── venv/                          # Python virtual environment
-├── league_XXXXXX_info.json        # League configuration
-├── league_XXXXXX_rosters.json     # Team rosters and standings
-├── league_XXXXXX_users.json       # League members
-├── league_XXXXXX_matchups_week_X.json # Matchups for each week (1 through current)
-├── league_XXXXXX_draft_info.json  # Draft settings
-├── league_XXXXXX_draft_picks.json # All draft picks
-├── nfl_players.json               # Complete NFL player database (17MB)
-└── nfl_state.json                 # Current NFL week/season info
+├── .env                            # Configuration file (create this)
+├── venv/                           # Python virtual environment
+├── web_interface_data.json         # Snapshot: weeks, teams, player subset
+├── league_XXXXXX_info.json         # League configuration
+├── league_XXXXXX_rosters.json      # Team rosters and standings
+├── league_XXXXXX_users.json        # League members
+├── league_XXXXXX_matchups_week_X.json # Current week's raw matchups
+├── league_XXXXXX_unrostered_season_stats.json # Best unowned team source
+├── league_XXXXXX_draft_info.json   # Draft settings
+├── league_XXXXXX_draft_picks.json  # All draft picks
+└── nfl_state.json                  # Current NFL week/season info
 ```
 
 ## 🔧 Advanced Usage
@@ -299,26 +282,12 @@ for roster in rosters:
 
 ## 🌐 Web Interface Features
 
-The interactive web interface provides two main views:
-
-### **Player Points Interface** (`sleeper_web_interface.html`)
-- **Week Selection**: Dropdown to choose any week (1 through current)
-- **Player Cards**: Individual cards showing points, position, team
-- **Starter Indicators**: Green highlighting for starting players
-- **Team Rankings**: Teams sorted by total points for selected week
-- **Responsive Design**: Works on all devices
-
-### **Team Rosters Interface** (`index.html`)
-- **Team Cards**: Each team displayed with standings and full roster
-- **Player Information**: Real names, positions, and NFL teams
-- **Visual Distinction**: Starters highlighted differently from bench players
-- **Season Statistics**: Wins/losses, points for/against, waiver positions
-- **Sortable**: Teams automatically sorted by wins, then points
-
-### **Navigation**
-- **Seamless Switching**: Navigate between views with navigation buttons
-- **Consistent Design**: Both interfaces share the same modern styling
-- **Mobile Friendly**: Navigation adapts to mobile devices
+- **Season Results** (`index.html`): team cards sorted by Points For, computed live from every scored week's starter points, with rosters split into starters, bench and scrubs, plus the best unowned team
+- **Weekly Results** (`weekly.html`): week selector, per-team optimal lineups, and the best unowned lineup for that week
+- **Stats** (`stats.html`): line, stacked bar and cumulative charts with per-team toggles
+- **Hall of Fame** (`hall-of-fame.html`): medals for weekly top-three finishes and the closet of shame for bottom finishes
+- **Archived seasons**: the same four pages frozen at a season's final snapshot, linked from the nav
+- **Responsive**: all pages adapt to mobile
 
 ## 🛠️ Troubleshooting
 
@@ -331,15 +300,13 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install requests
 ```
 
-**"HTTP 404: File not found" or "Failed to load data"**
-- **SOLUTION**: You must run the Python script, not a simple HTTP server
-- **WRONG**: `python3 -m http.server 8000`
-- **CORRECT**: `python sleeper_league_data.py YOUR_LEAGUE_ID`
-- The script includes a built-in web server that serves the interactive interface
+**"Failed to load data" or an empty page**
+- The pages must be served over HTTP, not opened as `file://` URLs: run `./start_server.sh`
+- Run `python sleeper_league_data.py` at least once so the snapshot files exist
 
-**"Address already in use" (Port conflict)**
-- The script automatically finds an available port (8001, 8002, etc.)
-- Check the terminal output for the actual port being used
+**Header says "Live unavailable"**
+- The browser could not reach `api.sleeper.app`; the page is showing the last snapshot
+- Check the browser console for the failing request (a corporate proxy or ad blocker is the usual cause)
 - If you see this error, kill any existing Python processes: `pkill -f python`
 
 **"JSON.parse: unexpected character" error**
@@ -375,8 +342,7 @@ The script respects Sleeper's API guidelines:
 
 - **Read-Only**: Script only reads data, cannot modify your league
 - **No Authentication**: Uses public API endpoints only
-- **Local Storage**: All data stored locally on your machine
-- **No External Dependencies**: Web interface works offline after initial data fetch
+- **Browser to Sleeper**: viewers' browsers call the public Sleeper API directly; no key or proxy is involved
 
 ## 🆘 Support
 
