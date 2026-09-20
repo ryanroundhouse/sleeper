@@ -359,3 +359,21 @@ This project is for personal use with Sleeper fantasy football leagues. Respect 
 ---
 
 **Happy Fantasy Football!** 🏆
+
+## Daily draft capsules
+
+The bottom-right gacha machine is available on current and archived pages. It
+reveals a random player from the current-season draft, using externally hosted
+Sleeper headshots. Each browser gets three equally weighted draws per Toronto
+calendar day, with no same-day repeats. The countdown resets at midnight,
+including daylight-saving changes.
+
+Draw history stays in that browser across days and seasons; it is not synced
+between devices and is removed when browser data is cleared. Draws do not change
+fantasy rosters. The widget requires browser storage, Web Locks, and HTTPS (or
+localhost for development). Results are saved before the capsule animation,
+with a reduced-motion alternative and initials when a headshot is unavailable.
+
+See [the design notes](docs/gacha-machine.md). Run the JavaScript checks with
+`node --test tests/*.test.js` and Python checks with
+`python3 -m unittest discover -s tests`.

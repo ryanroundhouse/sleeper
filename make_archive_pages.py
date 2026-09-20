@@ -32,6 +32,9 @@ def archive_page(html: str, year: str) -> str:
     replacements = present + [
         ('href="newsprint.css"', 'href="../newsprint.css"'),
         ('src="newsprint.js"', 'src="../newsprint.js"'),
+        ('href="gacha.css"', 'href="../gacha.css"'),
+        ('src="gacha-core.js"', 'src="../gacha-core.js"'),
+        ('src="gacha.js"', 'src="../gacha.js"'),
         ('const LIVE_VIEW = true;', 'const LIVE_VIEW = false;'),
         ('<script src="sleeper-live.js"></script>', '<script src="../sleeper-live.js"></script>'),
         ('            <p id="league-info">Fetching league information...</p>\n        </div>\n',

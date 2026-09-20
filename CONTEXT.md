@@ -40,3 +40,21 @@ _Avoid_: fpts, season points
 **Best unowned team**:
 The highest-scoring lineup that could be built from players no one in the league rosters, using season totals.
 _Avoid_: free agent all-stars, unrostered team
+
+### Gacha machine
+
+**Draft pool**:
+The players selected in this league's current-season draft, eligible to appear in the gacha machine.
+_Avoid_: rostered players, available players
+
+**Draw**:
+A random player reveal from the draft pool for entertainment, with no effect on fantasy rosters. Each eligible player has equal odds, and a player cannot repeat within the same daily allowance.
+_Avoid_: pick, transaction
+
+**Daily allowance**:
+The three draws available to a viewer each calendar day, resetting at midnight in America/Toronto.
+_Avoid_: rolling limit
+
+**Draw history**:
+The saved list of players revealed by a viewer's draws across days and seasons, newest first. Each draw remains a separate entry, including repeat players on different days.
+_Avoid_: roster, draft results
