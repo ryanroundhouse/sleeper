@@ -83,3 +83,11 @@ test('weekHasScores is false until at least one team has points', () => {
     assert.equal(live.weekHasScores({ week: 2, matchups: [{ total_points: 0 }, { total_points: 3.5 }] }), true);
     assert.equal(live.weekHasScores({ week: 2, matchups: [] }), false);
 });
+
+test('latestScoredWeek skips a week nobody has scored in yet', () => {
+    const scored = (week, pts) => ({ week, matchups: [{ total_points: 0 }, { total_points: pts }] });
+    assert.equal(live.latestScoredWeek([scored(1, 90), scored(2, 80), scored(3, 9.1)]), 3);
+    assert.equal(live.latestScoredWeek([scored(1, 90), scored(2, 80), scored(3, 0)]), 2); // Wednesday before kickoff
+    assert.equal(live.latestScoredWeek([scored(1, 0)]), 1);                               // nothing scored: highest week
+    assert.equal(live.latestScoredWeek([]), null);
+});

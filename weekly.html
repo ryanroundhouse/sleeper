@@ -55,6 +55,7 @@
             constructor() {
                 this.leagueData = null;
                 this.currentWeek = null;
+                this.weekChosenByUser = false; // once the viewer picks a week, refreshes leave it alone
                 this.unrosteredPlayers = null;
             }
 
@@ -88,8 +89,10 @@
                     `Season ${web.league_info.season} • ${web.league_info.total_rosters} Teams • Current Week: ${web.league_info.current_week}`;
 
                 this.populateWeekSelector();
-                if (firstLoad || !web.weeks.some(w => w.week === this.currentWeek)) {
-                    this.currentWeek = web.league_info.current_week;
+                // Follow the latest scored week (snapshot -> live, or a kickoff while the tab is open)
+                // unless the viewer has chosen a week themselves and it still exists.
+                if (!this.weekChosenByUser || !web.weeks.some(w => w.week === this.currentWeek)) {
+                    this.currentWeek = SleeperLive.latestScoredWeek(web.weeks) ?? web.league_info.current_week;
                 }
                 document.getElementById('week-select').value = this.currentWeek;
                 this.displayWeekData(this.currentWeek);
@@ -603,6 +606,7 @@
 
             // Add week selector event listener
             document.getElementById('week-select').addEventListener('change', function() {
+                viewer.weekChosenByUser = true;
                 viewer.currentWeek = parseInt(this.value);
                 viewer.displayWeekData(viewer.currentWeek);
             });

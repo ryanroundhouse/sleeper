@@ -128,6 +128,13 @@
         return (week.matchups || []).some((m) => (m.total_points || 0) > 0);
     }
 
+    /** Latest scored week: the highest week in which any team has points; the highest week at all if none do. */
+    function latestScoredWeek(weeks) {
+        const numbers = (weeks || []).filter(weekHasScores).map((w) => w.week);
+        if (!numbers.length) (weeks || []).forEach((w) => numbers.push(w.week));
+        return numbers.length ? Math.max(...numbers) : null;
+    }
+
     function scoreSignature(web) {
         if (!web) return null;
         return JSON.stringify((web.weeks || []).map((w) => [w.week, (w.matchups || []).map((m) => [m.roster_id, m.total_points])]));
@@ -345,7 +352,7 @@
     }
 
     return {
-        computePointsFor, createBackoff, formatWeb, unknownPlayerIds, hasScoresChanged, weekHasScores,
+        computePointsFor, createBackoff, formatWeb, unknownPlayerIds, hasScoresChanged, weekHasScores, latestScoredWeek,
         loadSnapshot, loadLive, start,
     };
 });

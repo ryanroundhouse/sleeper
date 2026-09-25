@@ -28,6 +28,10 @@ _Avoid_: this year, primary
 A completed season frozen at its final scored week, with its own copy of the pages under a year-named directory.
 _Avoid_: historic, history, last year
 
+**Latest scored week**:
+The most recent week in which any team has points; the week a page shows by default. Can trail the NFL week Sleeper reports by one midweek, before the first game kicks off.
+_Avoid_: current week, live week, this week
+
 **Game window**:
 The stretches of the NFL week during which scores change: Thursday night, Sunday, and Monday night.
 
