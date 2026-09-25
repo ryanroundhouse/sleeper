@@ -158,13 +158,15 @@ setup_git_config() {
 setup_git_auth
 setup_git_config
 
-# Pull latest changes from GitHub first
-log "INFO" "Pulling latest changes from GitHub..."
-if git pull origin main >> "$LOG_FILE" 2>&1; then
-    log "SUCCESS" "Successfully pulled latest changes"
+# Sync to GitHub first. This clone never has work of its own, so match origin/main
+# exactly rather than pull: a pull cannot fast-forward after history is rewritten,
+# and a snapshot committed on stale history can never be pushed.
+log "INFO" "Syncing to origin/main..."
+if git fetch origin main >> "$LOG_FILE" 2>&1 && git reset --hard origin/main >> "$LOG_FILE" 2>&1; then
+    log "SUCCESS" "Synced to origin/main ($(git rev-parse --short HEAD))"
 else
-    log "WARNING" "Failed to pull latest changes, continuing with current version"
-    # Don't exit here as we might be offline or have conflicts, but we can still update data
+    log "ERROR" "Could not sync to origin/main; a snapshot from stale history would not be pushable"
+    exit 1
 fi
 
 # Store current git status
