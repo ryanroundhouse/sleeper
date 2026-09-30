@@ -8,7 +8,7 @@
     4
   ],
   "total_unrostered_players": 235,
-  "generated_at": "2026-09-29 13:00:08",
+  "generated_at": "2026-09-30 06:00:08",
   "players": [
     {
       "player_id": "4017",
@@ -13566,13 +13566,14 @@
         "rush_td_lng": 8.0,
         "rush_tkl_loss": 1.0,
         "rush_tkl_loss_yd": -1.0,
-        "rush_yac": 11.0,
+        "rush_yac": 16.0,
         "rush_yd": 44.0,
         "rush_ypa": 6.83,
         "st_snp": 4.0,
         "tm_def_snp": 147.0,
         "tm_off_snp": 164.0,
         "tm_st_snp": 61.0,
+        "rec_drop": 1.0,
         "rec_0_4": 2.0,
         "rec_ypt": 1.67,
         "rec_lng": 4.0,
@@ -13622,6 +13623,7 @@
         },
         "week_3": {
           "rush_lng": 5.0,
+          "rec_drop": 1.0,
           "pos_rank_std": 51.0,
           "gp": 1.0,
           "kr_lng": 18.0,
@@ -13646,6 +13648,7 @@
           "tm_off_snp": 74.0,
           "pos_rank_ppr": 47.0,
           "off_snp": 14.0,
+          "rush_yac": 5.0,
           "pts_half_ppr": 2.9,
           "rec_air_yd": 1.0,
           "rec_ypr": 2.5,
@@ -14438,7 +14441,8 @@
         "tm_def_snp": 170.0,
         "tm_off_snp": 221.0,
         "tm_st_snp": 77.0,
-        "gs": 1.0
+        "gs": 1.0,
+        "rec_drop": 1.0
       },
       "weekly_stats": {
         "week_1": {
@@ -14494,6 +14498,7 @@
           "pos_rank_half_ppr": 999.0,
           "pos_rank_ppr": 999.0,
           "pos_rank_std": 999.0,
+          "rec_drop": 1.0,
           "rec_tgt": 1.0,
           "st_snp": 5.0,
           "tm_def_snp": 50.0,
@@ -23129,11 +23134,11 @@
       "total_fantasy_points": 2.3,
       "player_info": {
         "name": "DJ Herman",
-        "position": "LB",
+        "position": "RB",
         "team": "MIA",
         "years_exp": 0,
         "fantasy_positions": [
-          "LB"
+          "RB"
         ]
       },
       "season_stats": {
@@ -25519,7 +25524,7 @@
         "rush_fd": 3.0,
         "rush_lng": 10.0,
         "rush_rec_yd": 9.0,
-        "rush_yac": 3.0,
+        "rush_yac": 4.0,
         "rush_yd": 11.0,
         "rush_ypa": 9.0,
         "st_snp": 52.0,
@@ -25600,6 +25605,7 @@
           "rush_lng": 5.0,
           "rush_rec_yd": 5.0,
           "rush_rz_att": 1.0,
+          "rush_yac": 1.0,
           "rush_yd": 5.0,
           "rush_ypa": 5.0,
           "st_snp": 18.0,
@@ -27174,11 +27180,7 @@
         "pts_ppr": 1.0,
         "pts_std": 1.0,
         "st_ff": 1.0,
-        "st_snp": 19.0,
-        "st_tkl_solo": 2.0,
-        "tm_def_snp": 70.0,
-        "tm_off_snp": 77.0,
-        "tm_st_snp": 27.0
+        "st_tkl_solo": 2.0
       },
       "weekly_stats": {
         "week_3": {
@@ -27193,11 +27195,7 @@
           "pts_ppr": 1.0,
           "pts_std": 1.0,
           "st_ff": 1.0,
-          "st_snp": 19.0,
-          "st_tkl_solo": 2.0,
-          "tm_def_snp": 70.0,
-          "tm_off_snp": 77.0,
-          "tm_st_snp": 27.0
+          "st_tkl_solo": 2.0
         }
       },
       "weeks_played": 1,

@@ -25,8 +25,26 @@
     "roster_id": 1,
     "custom_points": null,
     "matchup_id": 6,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "6797",
+      "4034",
+      "12490",
+      "8137",
+      "10229",
+      "12514",
+      "9480",
+      "6806"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10229": 0.0,
       "11618": 0.0,
@@ -75,8 +93,26 @@
     "roster_id": 2,
     "custom_points": null,
     "matchup_id": 4,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "3294",
+      "9226",
+      "5850",
+      "5859",
+      "2216",
+      "11628",
+      "8130",
+      "12512"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11597": 0.0,
       "11628": 0.0,
@@ -124,8 +160,26 @@
     "roster_id": 3,
     "custom_points": null,
     "matchup_id": 6,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "421",
+      "12489",
+      "11586",
+      "9493",
+      "7525",
+      "2133",
+      "4217",
+      "11620"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11586": 0.0,
       "11620": 0.0,
@@ -173,8 +227,26 @@
     "roster_id": 4,
     "custom_points": null,
     "matchup_id": 4,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "4881",
+      "9224",
+      "8151",
+      "12519",
+      "13279",
+      "13281",
+      "5001",
+      "11584"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10232": 0.0,
       "11584": 0.0,
@@ -223,8 +295,26 @@
     "roster_id": 5,
     "custom_points": null,
     "matchup_id": 3,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "4984",
+      "8138",
+      "12481",
+      "12526",
+      "9487",
+      "13294",
+      "1466",
+      "9756"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11435": 0.0,
       "11603": 0.0,
@@ -273,8 +363,26 @@
     "roster_id": 6,
     "custom_points": null,
     "matchup_id": 3,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "6770",
+      "9509",
+      "8228",
+      "11632",
+      "8148",
+      "9500",
+      "11604",
+      "7594"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11563": 0.0,
       "11604": 0.0,
@@ -323,8 +431,26 @@
     "roster_id": 7,
     "custom_points": null,
     "matchup_id": 1,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "8183",
+      "12527",
+      "8155",
+      "7564",
+      "5927",
+      "8142",
+      "12518",
+      "8154"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "12492": 0.0,
       "12502": 0.0,
@@ -373,8 +499,26 @@
     "roster_id": 8,
     "custom_points": null,
     "matchup_id": 5,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "6904",
+      "8150",
+      "7543",
+      "7547",
+      "8146",
+      "11631",
+      "10236",
+      "4137"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10236": 0.0,
       "11576": 0.0,
@@ -423,8 +567,26 @@
     "roster_id": 9,
     "custom_points": null,
     "matchup_id": 7,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "11560",
+      "9221",
+      "7588",
+      "11635",
+      "4983",
+      "5045",
+      "12493",
+      "13286"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10219": 0.0,
       "11560": 0.0,
@@ -472,8 +634,26 @@
     "roster_id": 10,
     "custom_points": null,
     "matchup_id": 7,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "0",
+      "5892",
+      "5967",
+      "9488",
+      "7569",
+      "6801",
+      "10859",
+      "8132"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10859": 0.0,
       "11421": 0.0,
@@ -521,8 +701,26 @@
     "roster_id": 11,
     "custom_points": null,
     "matchup_id": 2,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "7523",
+      "4866",
+      "12507",
+      "9997",
+      "8167",
+      "10222",
+      "12506",
+      "11583"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "10213": 0.0,
       "10222": 0.0,
@@ -571,8 +769,26 @@
     "roster_id": 12,
     "custom_points": null,
     "matchup_id": 5,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "11564",
+      "6813",
+      "7611",
+      "8144",
+      "9754",
+      "8676",
+      "7553",
+      "12474"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11564": 0.0,
       "12474": 0.0,
@@ -621,8 +837,26 @@
     "roster_id": 13,
     "custom_points": null,
     "matchup_id": 1,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "4892",
+      "3198",
+      "6790",
+      "6794",
+      "5846",
+      "2449",
+      "12517",
+      "12534"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11589": 0.0,
       "12100": 0.0,
@@ -671,8 +905,26 @@
     "roster_id": 14,
     "custom_points": null,
     "matchup_id": 2,
-    "starters": null,
-    "starters_points": [],
+    "starters": [
+      "11566",
+      "13287",
+      "12529",
+      "6786",
+      "8112",
+      "7526",
+      "9484",
+      "7021"
+    ],
+    "starters_points": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
     "players_points": {
       "11559": 0.0,
       "11566": 0.0,
