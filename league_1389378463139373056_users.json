@@ -36,6 +36,7 @@
     "metadata": {
       "allow_pn": "on",
       "allow_sms": "on",
+      "archived": "off",
       "mention_pn": "on",
       "team_name": "War Daddies"
     },
