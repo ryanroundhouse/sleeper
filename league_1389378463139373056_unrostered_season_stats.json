@@ -13,7 +13,7 @@
     9
   ],
   "total_unrostered_players": 343,
-  "generated_at": "2026-11-07 06:00:09",
+  "generated_at": "2026-11-08 06:00:12",
   "players": [
     {
       "player_id": "4017",
@@ -31080,7 +31080,7 @@
       "player_info": {
         "name": "Dameon Pierce",
         "position": "RB",
-        "team": "PHI",
+        "team": null,
         "years_exp": 4,
         "fantasy_positions": [
           "RB"
