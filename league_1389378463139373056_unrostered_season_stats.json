@@ -15,7 +15,7 @@
     11
   ],
   "total_unrostered_players": 386,
-  "generated_at": "2026-11-18 06:00:11",
+  "generated_at": "2026-11-19 06:00:13",
   "players": [
     {
       "player_id": "4017",
@@ -875,8 +875,8 @@
         "def_pass_def": 46.0,
         "fum_rec": 5.0,
         "fan_pts_allow_te": 76.7,
-        "tkl": 527.0,
-        "tkl_solo": 292.0,
+        "tkl": 528.0,
+        "tkl_solo": 293.0,
         "fan_pts_allow": 622.22,
         "td": 15.0,
         "pts_ppr": 109.0,
@@ -1292,8 +1292,8 @@
           "def_pass_def": 7.0,
           "fum_rec": 2.0,
           "fan_pts_allow_te": 2.4,
-          "tkl": 46.0,
-          "tkl_solo": 33.0,
+          "tkl": 47.0,
+          "tkl_solo": 34.0,
           "fan_pts_allow": 63.82,
           "td": 3.0,
           "pts_ppr": 21.0,
@@ -8634,7 +8634,7 @@
       },
       "season_stats": {
         "sack": 26.0,
-        "qb_hit": 52.0,
+        "qb_hit": 53.0,
         "pos_rank_std": 8991.0,
         "gp": 9.0,
         "penalty": 63.0,
@@ -9041,7 +9041,7 @@
         },
         "week_10": {
           "sack": 3.0,
-          "qb_hit": 6.0,
+          "qb_hit": 7.0,
           "def_forced_punts": 5.0,
           "pos_rank_std": 999.0,
           "gp": 1.0,
@@ -20464,7 +20464,7 @@
         "fan_pts_allow_wr": 354.29999999999995,
         "tkl_loss": 44.0,
         "pts_half_ppr": 53.0,
-        "def_pass_def": 40.0,
+        "def_pass_def": 39.0,
         "fum_rec": 6.0,
         "fan_pts_allow_te": 124.99999999999999,
         "tkl": 620.0,
@@ -20913,7 +20913,7 @@
           "fan_pts_allow_wr": 52.2,
           "tkl_loss": 2.0,
           "pts_half_ppr": -2.0,
-          "def_pass_def": 2.0,
+          "def_pass_def": 1.0,
           "fan_pts_allow_te": 9.6,
           "tkl": 62.0,
           "tkl_solo": 29.0,
@@ -40049,7 +40049,7 @@
       "player_info": {
         "name": "Harrison Mevis",
         "position": "K",
-        "team": "BAL",
+        "team": null,
         "years_exp": 2,
         "fantasy_positions": [
           "K"
@@ -68883,7 +68883,7 @@
       "player_info": {
         "name": "Charlie Jones",
         "position": "WR",
-        "team": null,
+        "team": "NYG",
         "years_exp": 3,
         "fantasy_positions": [
           "WR"
@@ -68903,10 +68903,10 @@
         "pr_lng": 74.0,
         "pr_yd": 160.0,
         "pr_ypa": 55.58,
-        "st_snp": 54.0,
-        "tm_def_snp": 331.0,
-        "tm_off_snp": 366.0,
-        "tm_st_snp": 155.0,
+        "st_snp": 58.0,
+        "tm_def_snp": 400.0,
+        "tm_off_snp": 431.0,
+        "tm_st_snp": 181.0,
         "rec_ypt": 22.0,
         "bonus_fd_wr": 1.0,
         "pts_std": 2.5999999999999996,
@@ -69070,7 +69070,11 @@
           "pr": 1.0,
           "pr_lng": 2.0,
           "pr_yd": 2.0,
-          "pr_ypa": 2.0
+          "pr_ypa": 2.0,
+          "st_snp": 4.0,
+          "tm_def_snp": 69.0,
+          "tm_off_snp": 65.0,
+          "tm_st_snp": 26.0
         }
       },
       "weeks_played": 1,
@@ -87235,7 +87239,7 @@
       "player_info": {
         "name": "Nick Hampton",
         "position": "LB",
-        "team": null,
+        "team": "CAR",
         "years_exp": 3,
         "fantasy_positions": [
           "LB"
