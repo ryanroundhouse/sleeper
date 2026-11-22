@@ -15,7 +15,7 @@
     11
   ],
   "total_unrostered_players": 387,
-  "generated_at": "2026-11-21 06:00:12",
+  "generated_at": "2026-11-22 06:00:10",
   "players": [
     {
       "player_id": "4017",
@@ -48234,7 +48234,7 @@
       "player_info": {
         "name": "Pierre Strong Jr.",
         "position": "RB",
-        "team": null,
+        "team": "GB",
         "years_exp": 4,
         "fantasy_positions": [
           "RB"
