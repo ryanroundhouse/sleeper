@@ -117,7 +117,6 @@
     "st_ff": 1.0
   },
   "last_message_id": "1428529631555751936",
-  "draft_id": "1389378463139373057",
   "last_author_avatar": null,
   "last_author_display_name": "sys",
   "last_author_id": "166666666666666666",
@@ -127,6 +126,7 @@
   "last_message_time": 1794950514262,
   "last_pinned_message_id": null,
   "last_read_id": null,
+  "draft_id": "1389378463139373057",
   "previous_league_id": "1264686617134628864",
   "roster_positions": [
     "QB",
